@@ -20,23 +20,20 @@ const signUpValidator = [
         .isEmail()
         .withMessage("Email must be a valid address"),
     body("password")
-        .trim()
         .notEmpty()
         .withMessage(`Password ${nullError}`)
         .isLength({ min: 8, max: 128 })
         .withMessage(`Password ${passwordError}`),
     body("role")
-        .trim()
         .notEmpty()
         .withMessage(`Role ${nullError}`)
         .isIn(["organizer", "attendee"])
         .withMessage("Role must be either 'organizer' or 'attendee'"),
     body("confirmPassword")
-        .trim()
         .notEmpty()
         .withMessage(`Confirm password ${nullError}`)
         .custom((value, { req }) => {
-            if (value != req.body.password) {
+            if (value !== req.body.password) {
                 throw new Error("Passwords must match!");
             }
             return true;

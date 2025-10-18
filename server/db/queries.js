@@ -57,15 +57,15 @@ const getAllEvents = async () => {
     }
 };
 
-const createEvent = async (title, description, date, location, organizerId) => {
-    if (!title || !description || !date || !location || !organizerId) {
+const createEvent = async (title, description, date, location, organizerId, time) => {
+    if (!title || !description || !date || !location || !organizerId || !time) {
         return null;
     }
     try {
         const res = await sql`
-        INSERT INTO events (title, description, date, location, organizer_id)
-        VALUES (${title}, ${description}, ${date}, ${location}, ${organizerId})
-        RETURNING id, title, description, date, location, organizer_id
+        INSERT INTO events (title, description, date, location, organizer_id, time)
+        VALUES (${title}, ${description}, ${date}, ${location}, ${organizerId}, ${time})
+        RETURNING id, title, description, date, location, organizer_id, time
     `;
         return res;
     } catch (error) {
@@ -74,11 +74,9 @@ const createEvent = async (title, description, date, location, organizerId) => {
     }
 };
 
-const getEventById = async (id) => {
+const getEventById = async (event_id) => {
 
-    const event_id = parseInt(id);
-
-    if (isNaN(event_id) || event_id <= 0) {
+    if (isNaN(event_id)) {
         return null;
     }
 
@@ -86,7 +84,7 @@ const getEventById = async (id) => {
         const event = await sql`
         SELECT *
         FROM events
-        WHERE id = ${id}
+        WHERE id = ${event_id}
     `;
         return event[0];
     } catch (error) {
@@ -95,13 +93,13 @@ const getEventById = async (id) => {
     }
 };
 
-const updateEvent = async (id, title, description, date, location) => {
+const updateEvent = async (id, title, description, date, location, time) => {
     try {
         const res = await sql`
         UPDATE events
-        SET title = ${title}, description = ${description}, date = ${date}, location = ${location}
+        SET title = ${title}, description = ${description}, date = ${date}, location = ${location}, time = ${time}
         WHERE id = ${id}
-        RETURNING id, title, description, date, location
+        RETURNING id, title, description, date, location, time
     `;
         return res;
     } catch (error) {
@@ -204,48 +202,48 @@ const getTickets = async (event_id) => {
 };
 
 
-const createEventRsvp = async (event_id, user_id, ticket_type) => {
+const createEventRsvp = async (event_id, user_id, ticket_id) => {
     try {
         const result = await sql.begin(async (sql) => {
             const ticket = await sql`
-            SELECT *
-            FROM tickets
-            WHERE event_id = ${event_id} AND type = ${ticket_type}
-            FOR UPDATE
-        `;
+        SELECT *
+        FROM tickets
+        WHERE id = ${ticket_id} AND event_id = ${event_id}
+        FOR UPDATE
+      `;
 
             if (ticket.length === 0) {
                 return { error: "Ticket not found." };
             }
-            if (ticket[0].quantity === 0) {
-                return { error: "No tickets available for the selected type." };
+
+            if (ticket[0].quantity <= 0) {
+                return { error: "No tickets available for this event." };
             }
 
             const existing = await sql`
-                SELECT * FROM rsvps 
-                WHERE event_id = ${event_id} 
-                AND user_id = ${user_id} 
-                AND status = 'confirmed'
-                LIMIT 1
-            `;
+        SELECT * FROM rsvps 
+        WHERE event_id = ${event_id} AND user_id = ${user_id} AND status = 'confirmed'
+        LIMIT 1
+      `;
 
             if (existing.length > 0) {
                 return { error: "You have already RSVP'd for this event." };
             }
 
             await sql`
-                UPDATE tickets 
-                SET quantity = quantity - 1
-                WHERE event_id = ${event_id} AND type = ${ticket_type}
-            `;
+        UPDATE tickets 
+        SET quantity = quantity - 1
+        WHERE id = ${ticket_id}
+      `;
 
             const rsvp = await sql`
-            INSERT INTO rsvps (event_id, user_id, ticket_type)
-            VALUES (${event_id}, ${user_id}, ${ticket_type})
-            RETURNING id, event_id, user_id, ticket_type, status, created_at
-        `;
+        INSERT INTO rsvps (event_id, user_id, ticket_id, status)
+        VALUES (${event_id}, ${user_id}, ${ticket_id}, 'confirmed')
+        RETURNING *
+      `;
             return rsvp[0];
         });
+
         return result;
     } catch (error) {
         console.error("Error creating RSVP:", error);
@@ -253,41 +251,40 @@ const createEventRsvp = async (event_id, user_id, ticket_type) => {
     }
 };
 
+
 const cancelRsvp = async (rsvpId, userId) => {
     try {
         const result = await sql.begin(async (sql) => {
             const rsvp = await sql`
-                SELECT *
-                FROM rsvps
-                WHERE id = ${rsvpId} AND user_id = ${userId} AND status = 'confirmed'
-                LIMIT 1
-            `;
+        SELECT * FROM rsvps
+        WHERE id = ${rsvpId} AND user_id = ${userId} AND status = 'confirmed'
+        LIMIT 1
+      `;
 
-            if (rsvp.length === 0) {
-                return "not_found";
-            }
+            if (rsvp.length === 0) return "not_found";
 
             await sql`
-                UPDATE rsvps 
-                SET status = 'cancelled'
-                WHERE id = ${rsvpId}
-            `;
+        UPDATE rsvps 
+        SET status = 'cancelled'
+        WHERE id = ${rsvpId}
+      `;
 
             await sql`
-                UPDATE tickets 
-                SET quantity = quantity + 1
-                WHERE event_id = ${rsvp[0].event_id} 
-                AND type = ${rsvp[0].ticket_type}
-            `;
+        UPDATE tickets 
+        SET quantity = quantity + 1
+        WHERE id = ${rsvp[0].ticket_id}
+      `;
 
             return "success";
         });
+
         return result;
     } catch (error) {
         console.error("Error canceling RSVP:", error);
         return null;
     }
 };
+
 
 const getRsvpsByEventId = async (event_id) => {
     try {

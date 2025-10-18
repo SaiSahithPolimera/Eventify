@@ -5,15 +5,18 @@ const getEvents = async (req, res) => {
     try {
         const events = await queries.getAllEvents();
         if (events.length === 0) {
-            return res.status(404).json({
+            return res.status(200).json({
                 success: false,
                 message: "No events found"
             });
         }
+
         return res.status(200).json({
             success: true,
-            data: events
+            events
         });
+
+
     } catch (error) {
         console.error("Error fetching events:", error);
         return res.status(500).json({
@@ -24,7 +27,7 @@ const getEvents = async (req, res) => {
 };
 
 const createEvent = async (req, res) => {
-    const { title, description, date, location } = req.body;
+    const { title, description, date, location, time } = req.body;
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
@@ -39,7 +42,7 @@ const createEvent = async (req, res) => {
 
     try {
         const userId = req.user.id;
-        const result = await queries.createEvent(title, description, date, location, userId);
+        const result = await queries.createEvent(title, description, date, location, userId, time);
 
         if (!result) {
             return res.status(400).json({
@@ -50,7 +53,7 @@ const createEvent = async (req, res) => {
         return res.status(201).json({
             success: true,
             message: "Event created successfully",
-            data: result[0]
+            event: result[0],
         });
     } catch (error) {
         console.error("Error creating event:", error);
@@ -81,7 +84,7 @@ const getEvent = async (req, res) => {
         }
         return res.status(200).json({
             success: true,
-            data: event
+            event
         });
     } catch (error) {
         console.error("Error fetching event:", error);
@@ -132,7 +135,7 @@ const updateEvent = async (req, res) => {
             });
         }
 
-        const updatedEvent = await queries.updateEvent(id, title, description, date, location);
+        const updatedEvent = await queries.updateEvent(id, title, description, date, location, time);
         if (!updatedEvent) {
             return res.status(400).json({
                 success: false,
@@ -142,7 +145,7 @@ const updateEvent = async (req, res) => {
         return res.status(200).json({
             success: true,
             message: "Event updated successfully",
-            data: updatedEvent[0]
+            event: updatedEvent[0]
         });
     } catch (error) {
         console.error("Error updating event:", error);
@@ -206,6 +209,13 @@ const addTickets = async (req, res) => {
     const { type, price, quantity } = req.body;
     const event = await queries.getEventById(event_id);
 
+    if (!event) {
+        return res.status(404).json({
+            success: false,
+            message: "Event not found"
+        });
+    }
+
     if (event.organizer_id !== req.user.id) {
         return res.status(403).json({
             success: false,
@@ -226,23 +236,23 @@ const addTickets = async (req, res) => {
     }
 
     try {
-        const result = await queries.addTickets(event_id, type, price, quantity);
+        const ticketData = await queries.addTickets(event_id, type, price, quantity);
         if (!result) {
             return res.status(400).json({
                 success: false,
                 message: "Adding tickets failed"
             });
         }
-        if (result.message) {
+        if (ticketData.message) {
             return res.status(400).json({
                 success: false,
-                message: result.message
+                message: ticketData.message
             });
         }
         return res.status(201).json({
             success: true,
             message: "Tickets added successfully",
-            data: result
+            ticketData
         });
     } catch (error) {
         console.error("Error adding tickets:", error);
@@ -311,6 +321,12 @@ const deleteTickets = async (req, res) => {
     const { id: event_id, ticketId } = req.params;
     const event = await queries.getEventById(event_id);
 
+    if (!event) {
+        return res.status(404).json({
+            success: false,
+            message: "Event not found"
+        });
+    }
     if (event.organizer_id !== req.user.id) {
         return res.status(403).json({
             success: false,

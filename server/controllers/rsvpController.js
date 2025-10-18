@@ -1,10 +1,10 @@
 import { queries } from "../db/queries.js";
 
 const createRsvp = async (req, res) => {
-    const { event_id, ticket_type } = req.body;
+    const { event_id, ticket_id } = req.body;
     const user_id = req.user.id;
 
-    if (!event_id || !ticket_type) {
+    if (!event_id || !ticket_id) {
         return res.status(400).json({
             success: false,
             message: "Event ID and ticket type are required."
@@ -12,9 +12,9 @@ const createRsvp = async (req, res) => {
     }
 
     try {
-        const newRsvp = await queries.createEventRsvp(event_id, user_id, ticket_type);
+        const rsvp = await queries.createEventRsvp(event_id, user_id, ticket_id);
 
-        if (newRsvp.error) {
+        if (rsvp.error) {
             return res.status(400).json({
                 success: false,
                 message: newRsvp.error
@@ -24,7 +24,7 @@ const createRsvp = async (req, res) => {
         return res.status(201).json({
             success: true,
             message: "RSVP created successfully",
-            data: newRsvp
+            rsvp
         });
     } catch (error) {
         console.error("Error creating RSVP:", error);
@@ -60,7 +60,7 @@ const getMyRsvps = async (req, res) => {
     const user_id = req.user.id;
     try {
         const rsvps = await queries.getRsvpsByUserId(user_id);
-        return res.status(200).json({ success: true, data: rsvps });
+        return res.status(200).json({ success: true,  rsvps });
     } catch (error) {
         console.error("Error fetching RSVPs:", error);
         return res.status(500).json({ success: false, message: "Internal server error." });
