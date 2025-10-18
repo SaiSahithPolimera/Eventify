@@ -26,7 +26,16 @@ const signup = async (req, res) => {
                 return res.json({
                     success: true,
                 });
-            } else {
+            }
+
+            else if (message.error === "email already exists") {
+                return res.status(409).json({
+                    success: false,
+                    message: "Email already exists!",
+                });
+            }
+
+            else {
                 return res.status(400).json({
                     success: false,
                     message: "User registration failed!",
@@ -65,7 +74,7 @@ const login = async (req, res) => {
     const isAdmin = userData.role === "admin";
     const isOrganizer = userData.role === "organizer";
     const isValid = await bcrypt.compare(password, userData.password_hash);
-    
+
     if (isValid) {
         const token = jwt.sign({
             id: userData.id,

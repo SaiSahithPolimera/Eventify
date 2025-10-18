@@ -19,6 +19,9 @@ const createUser = async (name, email, password, role) => {
         }
         return "success";
     } catch (error) {
+        if (error.code === '23505') {
+            return { error: "email already exists" };
+        }
         console.error("Error creating user:", error);
         return "error";
     }
@@ -72,6 +75,13 @@ const createEvent = async (title, description, date, location, organizerId) => {
 };
 
 const getEventById = async (id) => {
+
+    const event_id = parseInt(id);
+
+    if (isNaN(event_id) || event_id <= 0) {
+        return null;
+    }
+
     try {
         const event = await sql`
         SELECT *
@@ -114,4 +124,199 @@ const deleteEvent = async (id) => {
     }
 };
 
-export const queries = { getUserCredentials, createUser, getAllEvents, createEvent, updateEvent, deleteEvent, getEventById };
+const addTickets = async (event_id, type, price, quantity) => {
+    try {
+        const hasFree = await sql`
+        SELECT *
+        FROM tickets
+        WHERE event_id = ${event_id} AND type = 'free'
+    `;
+        const hasPaid = await sql` 
+        SELECT *
+        FROM tickets
+        WHERE event_id = ${event_id} AND type = 'paid'
+    `;
+        if (hasFree.length > 0 && type === 'free') {
+            return { message: "You have already added free tickets for this event." };
+        }
+
+        if (hasPaid.length > 0 && type === 'paid') {
+            return { message: "You have already added paid tickets for this event." };
+        }
+
+        if (hasFree.length > 0 && hasPaid.length > 0) {
+            return { message: "You have already added both free and paid tickets for this event." };
+        }
+        const res = await sql`
+        INSERT INTO tickets (event_id, type, price, quantity)
+        VALUES (${event_id}, ${type}, ${price}, ${quantity})
+        RETURNING id, event_id, type, price, quantity
+    `;
+        return res;
+    } catch (error) {
+        console.error("Error adding tickets:", error);
+        return null;
+    }
+};
+
+
+const updateTickets = async (event_id, type, price, quantity) => {
+    try {
+        const res = await sql`
+        UPDATE tickets
+        SET price = ${price}, quantity = ${quantity}
+        WHERE event_id = ${event_id} AND type = ${type}
+        RETURNING id, event_id, type, price, quantity
+    `;
+        return res;
+    } catch (error) {
+        console.error("Error updating tickets:", error);
+        return null;
+    }
+};
+
+
+const deleteTickets = async (event_id, ticketId) => {
+    try {
+        await sql`
+        DELETE FROM tickets
+        WHERE event_id = ${event_id} AND id = ${ticketId}
+    `;
+        return "success";
+    } catch (error) {
+        console.error("Error deleting tickets:", error);
+        return null;
+    }
+};
+
+const getTickets = async (event_id) => {
+    try {
+        const tickets = await sql`
+        SELECT *
+        FROM tickets
+        WHERE event_id = ${event_id}
+    `;
+        return tickets;
+    } catch (error) {
+        console.error("Error fetching tickets:", error);
+        return null;
+    }
+};
+
+
+const createEventRsvp = async (event_id, user_id, ticket_type) => {
+    try {
+        const result = await sql.begin(async (sql) => {
+            const ticket = await sql`
+            SELECT *
+            FROM tickets
+            WHERE event_id = ${event_id} AND type = ${ticket_type}
+            FOR UPDATE
+        `;
+
+            if (ticket.length === 0) {
+                return { error: "Ticket not found." };
+            }
+            if (ticket[0].quantity === 0) {
+                return { error: "No tickets available for the selected type." };
+            }
+
+            const existing = await sql`
+                SELECT * FROM rsvps 
+                WHERE event_id = ${event_id} 
+                AND user_id = ${user_id} 
+                AND status = 'confirmed'
+                LIMIT 1
+            `;
+
+            if (existing.length > 0) {
+                return { error: "You have already RSVP'd for this event." };
+            }
+
+            await sql`
+                UPDATE tickets 
+                SET quantity = quantity - 1
+                WHERE event_id = ${event_id} AND type = ${ticket_type}
+            `;
+
+            const rsvp = await sql`
+            INSERT INTO rsvps (event_id, user_id, ticket_type)
+            VALUES (${event_id}, ${user_id}, ${ticket_type})
+            RETURNING id, event_id, user_id, ticket_type, status, created_at
+        `;
+            return rsvp[0];
+        });
+        return result;
+    } catch (error) {
+        console.error("Error creating RSVP:", error);
+        throw error;
+    }
+};
+
+const cancelRsvp = async (rsvpId, userId) => {
+    try {
+        const result = await sql.begin(async (sql) => {
+            const rsvp = await sql`
+                SELECT *
+                FROM rsvps
+                WHERE id = ${rsvpId} AND user_id = ${userId} AND status = 'confirmed'
+                LIMIT 1
+            `;
+
+            if (rsvp.length === 0) {
+                return "not_found";
+            }
+
+            await sql`
+                UPDATE rsvps 
+                SET status = 'cancelled'
+                WHERE id = ${rsvpId}
+            `;
+
+            await sql`
+                UPDATE tickets 
+                SET quantity = quantity + 1
+                WHERE event_id = ${rsvp[0].event_id} 
+                AND type = ${rsvp[0].ticket_type}
+            `;
+
+            return "success";
+        });
+        return result;
+    } catch (error) {
+        console.error("Error canceling RSVP:", error);
+        return null;
+    }
+};
+
+const getRsvpsByEventId = async (event_id) => {
+    try {
+        const rsvps = await sql`
+        SELECT *
+        FROM rsvps
+        WHERE event_id = ${event_id}
+    `;
+        return rsvps;
+    } catch (error) {
+        console.error("Error fetching RSVPs:", error);
+        return null;
+    }
+};
+
+const getRsvpsByUserId = async (userId) => {
+    try {
+        const rsvps = await sql` SELECT r.id, r.event_id, r.user_id, r.ticket_type, r.status, r.created_at, e.title, e.date, e.location
+        FROM rsvps r
+        JOIN events e ON r.event_id = e.id
+        JOIN users u ON r.user_id = u.id
+        WHERE r.user_id = ${userId}
+        AND r.status = 'confirmed'  ORDER BY r.created_at DESC
+    `;
+        return rsvps;
+    } catch (error) {
+        console.error("Error fetching RSVPs by user ID:", error);
+        return null;
+    }
+};
+
+export const queries = { getUserCredentials, createUser, getAllEvents, createEvent, updateEvent, deleteEvent, getEventById, addTickets, updateTickets, deleteTickets, getTickets, createEventRsvp, cancelRsvp, getRsvpsByEventId, getRsvpsByUserId };

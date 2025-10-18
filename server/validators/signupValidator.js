@@ -15,6 +15,7 @@ const signUpValidator = [
         .trim()
         .notEmpty()
         .withMessage(`Email ${nullError}`)
+        .normalizeEmail()
         .isLength({ max: 100 })
         .isEmail()
         .withMessage("Email must be a valid address"),
@@ -22,7 +23,7 @@ const signUpValidator = [
         .trim()
         .notEmpty()
         .withMessage(`Password ${nullError}`)
-        .isLength({ min: 8 })
+        .isLength({ min: 8, max: 128 })
         .withMessage(`Password ${passwordError}`),
     body("role")
         .trim()

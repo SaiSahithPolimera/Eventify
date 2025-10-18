@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import authRouter from "./routes/authRouter.js";
 import cookieParser from "cookie-parser";
 import eventRouter from "./routes/eventRouter.js";
+import rsvpRouter from "./routes/rsvpRouter.js";
 
 dotenv.config();
 const app = express();
@@ -23,6 +24,7 @@ app.get("/", (req, res) => {
 
 app.use(authRouter);
 app.use(eventRouter);
+app.use(rsvpRouter);
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
