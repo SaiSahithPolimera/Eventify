@@ -5,16 +5,20 @@ import jwt from "jsonwebtoken";
 
 const saltRounds = 9;
 const isProduction = process.env.NODE_ENV === 'production';
+
 const signup = async (req, res) => {
     const { errors } = validationResult(req);
+
     if (errors.length !== 0) {
         const filteredErrors = errors.map(
             (err) => (err = { fieldName: err.path, message: err.msg })
         );
         return res.status(400).json({ errors: filteredErrors });
     }
+
     const { name, password, email, role } = req.body;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
+
     if (name && hashedPassword && email && role) {
         try {
             const message = await queries.createUser(name, email, hashedPassword, role);
@@ -23,12 +27,16 @@ const signup = async (req, res) => {
                     success: true,
                 });
             } else {
-                return res.json({
+                return res.status(400).json({
+                    success: false,
                     message: "User registration failed!",
                 });
             }
         } catch (err) {
             console.error(err);
+            return res.status(500).json({
+                message: "Internal server error!",
+            });
         }
     }
 };
@@ -36,12 +44,14 @@ const signup = async (req, res) => {
 
 const login = async (req, res) => {
     const { errors } = validationResult(req);
+
     if (errors.length !== 0) {
         const filteredErrors = errors.map(
             (err) => (err = { fieldName: err.path, message: err.msg })
         );
-        return res.json({ errors: filteredErrors });
+        return res.status(400).json({ errors: filteredErrors });
     }
+
     const { email, password } = req.body;
     const userData = await queries.getUserCredentials(email);
 
@@ -52,39 +62,33 @@ const login = async (req, res) => {
         });
     }
 
-    const isAdmin = userData.role === "admin" ? true : false;
-    const isOrganizer = userData.role === "organizer" ? true : false;
-    if (userData) {
-        const isValid = await bcrypt.compare(password, userData.password_hash);
-        if (isValid === true) {
-            const token = jwt.sign({
-                id: userData.id,
-                name: userData.name,
-                email: userData.email,
-                role: userData.role
-            }, process.env.JWT_SECRET_KEY, { expiresIn: '24h' });
-            res.cookie("token", token, {
-                httpOnly: true,
-                maxAge: 24 * 60 * 60 * 1000,
-                secure: isProduction,
-                sameSite: isProduction ? 'None' : 'Lax'
-            });
-            return res.json({
-                success: true,
-                isAdmin: isAdmin,
-                isOrganizer: isOrganizer,
-                message: "Login success!",
-            });
-        } else {
-            return res.status(401).json({
-                success: false,
-                message: "Incorrect password!",
-            });
-        }
+    const isAdmin = userData.role === "admin";
+    const isOrganizer = userData.role === "organizer";
+    const isValid = await bcrypt.compare(password, userData.password_hash);
+    
+    if (isValid) {
+        const token = jwt.sign({
+            id: userData.id,
+            name: userData.name,
+            email: userData.email,
+            role: userData.role
+        }, process.env.JWT_SECRET_KEY, { expiresIn: '24h' });
+        res.cookie("token", token, {
+            httpOnly: true,
+            maxAge: 24 * 60 * 60 * 1000,
+            secure: isProduction,
+            sameSite: isProduction ? 'None' : 'Lax'
+        });
+        return res.json({
+            success: true,
+            isAdmin: isAdmin,
+            isOrganizer: isOrganizer,
+            message: "Login success!",
+        });
     } else {
-        return res.status(404).json({
+        return res.status(401).json({
             success: false,
-            message: "User not found!",
+            message: "Incorrect password!",
         });
     }
 };
