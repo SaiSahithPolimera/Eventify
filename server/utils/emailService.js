@@ -53,6 +53,15 @@ export const sendEventConfirmation = async (recipientEmail, eventDetails) => {
   }
 };
 
+export const shouldSendReminder = (eventDateTime, reminderSent) => {
+  const now = new Date();
+  const eventTime = new Date(eventDateTime);
+  const timeDifference = eventTime - now;
+  const twoHoursInMs = 2 * 60 * 60 * 1000;
+
+  return timeDifference <= twoHoursInMs && timeDifference > 0 && !reminderSent;
+};
+
 const generateConfirmationHTML = (event) => `
 <!DOCTYPE html>
 <html lang="en">
@@ -168,11 +177,11 @@ const generateConfirmationHTML = (event) => `
         transition: background-color 0.2s ease;
       }
 
-    .button:hover {
-      background-color: #059669;
-      color: #ffffff !important;
-      text-decoration: none !important;
-    }
+      .button:hover {
+        background-color: #059669;
+        color: #ffffff !important;
+        text-decoration: none !important;
+      }
 
       .footer {
         background: #f9fafb;
@@ -250,7 +259,6 @@ const generateConfirmationHTML = (event) => `
   </body>
 </html>
 `;
-
 
 const generateReminderHTML = (event) => `
 <!DOCTYPE html>
@@ -365,25 +373,25 @@ const generateReminderHTML = (event) => `
         margin-top: 20px;
       }
 
-    .button {
-      display: inline-block;
-      background-color: #ef4444;
-      color: #ffffff !important;
-      padding: 12px 28px;
-      border-radius: 8px;
-      font-weight: 600;
-      text-decoration: none !important;
-      font-size: 15px;
-      border: none;
-      cursor: pointer;
-      transition: background-color 0.2s ease;
-    }
+      .button {
+        display: inline-block;
+        background-color: #ef4444;
+        color: #ffffff !important;
+        padding: 12px 28px;
+        border-radius: 8px;
+        font-weight: 600;
+        text-decoration: none !important;
+        font-size: 15px;
+        border: none;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+      }
 
-    .button:hover {
-      background-color: #dc2626;
-      color: #ffffff !important;
-      text-decoration: none !important;
-    }
+      .button:hover {
+        background-color: #dc2626;
+        color: #ffffff !important;
+        text-decoration: none !important;
+      }
 
       .footer {
         background: #f9fafb;
@@ -445,7 +453,7 @@ const generateReminderHTML = (event) => `
         </div>
 
         <div class="alert-box">
-          <p>⚠️ Don’t be late — leave early to arrive on time.</p>
+          <p>⚠️ Don't be late — leave early to arrive on time.</p>
         </div>
 
         <div class="cta-section">
@@ -462,6 +470,5 @@ const generateReminderHTML = (event) => `
   </body>
 </html>
 `;
-
 
 export default transporter;

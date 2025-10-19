@@ -26,6 +26,31 @@ const getEvents = async (req, res) => {
     }
 };
 
+const getOrganizerEvents = async (req, res) => {
+    const userId = req.user.id;
+    
+    try {
+        const events = await queries.getEventsByOrganizerId(userId);
+        if (!events) {
+            return res.status(200).json({
+                success: false,
+                message: "No events found"
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            events
+        });
+    } catch (error) {
+        console.error("Error fetching organizer events:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Internal server error"
+        });
+    }
+};
+
 const createEvent = async (req, res) => {
     const { title, description, date, location, time } = req.body;
     const errors = validationResult(req);
@@ -497,5 +522,6 @@ export {
     getTickets,
     getEventRsvps,
     getEventStats,
-    getUserDataById
+    getUserDataById,
+    getOrganizerEvents
 };

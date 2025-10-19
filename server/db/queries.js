@@ -391,5 +391,18 @@ const getRsvpsForUpcomingEvents = async (startDate, endDate) => {
     }
 };
 
+const getEventsByOrganizerId = async (organizerId) => {
+    try {
+        const events = await sql`
+            SELECT *
+            FROM events
+            WHERE organizer_id = ${organizerId}
+        `;
+        return events;
+    } catch (error) {
+        console.error("Error fetching events by organizer ID:", error);
+        return null;
+    }
+};
 
-export const queries = { getUserCredentials, createUser, getAllEvents, createEvent, updateEvent, deleteEvent, getEventById, addTickets, updateTickets, deleteTickets, getTickets, createEventRsvp, cancelRsvp, getRsvpsByEventId, getRsvpsByUserId, getEventStats, getEventRsvps, getUserDataById, getRsvpsForUpcomingEvents };
+export const queries = { getUserCredentials, createUser, getAllEvents, createEvent, updateEvent, deleteEvent, getEventById, addTickets, updateTickets, deleteTickets, getTickets, createEventRsvp, cancelRsvp, getRsvpsByEventId, getRsvpsByUserId, getEventStats, getEventRsvps, getUserDataById, getRsvpsForUpcomingEvents, getEventsByOrganizerId };
