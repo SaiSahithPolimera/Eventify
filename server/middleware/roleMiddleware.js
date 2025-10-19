@@ -19,8 +19,7 @@ const requireRole = (...allowedRoles) => {
 };
 
 const isOrganizer = requireRole('organizer');
-const isAdmin = requireRole('admin');
 const isAttendee = requireRole('attendee');
 
-export { requireRole, isOrganizer, isAdmin, isAttendee };
+export { requireRole, isOrganizer, isAttendee };
 export default requireRole;

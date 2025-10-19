@@ -86,7 +86,7 @@ const Login = () => {
             <div className="w-full max-w-md relative">
                 <div className="bg-white rounded-2xl shadow-xl p-8 space-y-6 backdrop-blur-sm bg-opacity-90">
                     <div className="text-center space-y-2">
-                        <h1 className="text-3xl font-serif text-gray-900">Welcome back</h1>
+                        <h1 className="text-3xl font-sans text-gray-900">Welcome back</h1>
                     </div>
 
                     <form onSubmit={handleSubmit} className="space-y-4">

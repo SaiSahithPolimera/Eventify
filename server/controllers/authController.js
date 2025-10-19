@@ -71,7 +71,6 @@ const login = async (req, res) => {
         });
     }
 
-    const isAdmin = userData.role === "admin";
     const isOrganizer = userData.role === "organizer";
     const isValid = await bcrypt.compare(password, userData.password_hash);
 
@@ -90,7 +89,7 @@ const login = async (req, res) => {
         });
         return res.json({
             success: true,
-            isAdmin: isAdmin,
+            name: userData.name,
             isOrganizer: isOrganizer,
             message: "Login success!",
         });

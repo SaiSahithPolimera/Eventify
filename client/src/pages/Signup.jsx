@@ -120,7 +120,7 @@ const Signup = () => {
       <div className="w-full max-w-md relative">
         <div className="bg-white rounded-xl shadow-lg p-6 space-y-5 backdrop-blur-sm bg-opacity-95">
           <div className="text-center">
-            <h1 className="text-2xl  font-serif">
+            <h1 className="text-2xl  font-sans">
               Join Eventify today
             </h1>
           </div>

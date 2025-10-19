@@ -9,6 +9,7 @@ export const AuthProvider = () => {
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
+    
     if (storedUser) {
       try {
         setUser(JSON.parse(storedUser));
@@ -37,11 +38,11 @@ export const AuthProvider = () => {
         const userData = {
           id: data.id,
           name: data.name,
-          email: data.email,
           role: data.role || (data.isOrganizer ? 'organizer' : 'attendee')
         };
 
         setUser(userData);
+        
         localStorage.setItem('user', JSON.stringify(userData));
 
         return { success: true, user: userData };
@@ -107,7 +108,6 @@ export const AuthProvider = () => {
     isAuthenticated: !!user,
     isOrganizer: user?.role === 'organizer',
     isAttendee: user?.role === 'attendee',
-    isAdmin: user?.role === 'admin'
   };
 
   return (

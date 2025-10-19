@@ -3,7 +3,9 @@ import Dashboard from "./pages/Dashboard";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import RequireAuth from "./components/RequireAuth";
-
+import AddTickets from "./pages/AddTickets";
+import AdminDashboard from "./pages/AdminDashboard";
+import MyEvents from "./pages/MyEvents";
 
 const routes = [
     {
@@ -23,6 +25,27 @@ const routes = [
         element:
             <RequireAuth>
                 <Dashboard />
+            </RequireAuth>
+    },
+    {
+        path: "/my-events",
+        element:
+            <RequireAuth allowedRoles={["organizer"]}>
+                <MyEvents />
+            </RequireAuth>
+    },
+    {
+        path: "/events/:id/tickets",
+        element:
+            <RequireAuth allowedRoles={["organizer"]}>
+                <AddTickets />
+            </RequireAuth>
+    },
+    {
+        path: "/admin",
+        element:
+            <RequireAuth allowedRoles={["organizer"]}>
+                <AdminDashboard />
             </RequireAuth>
     }
 ];

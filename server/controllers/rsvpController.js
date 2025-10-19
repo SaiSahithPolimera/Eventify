@@ -17,7 +17,7 @@ const createRsvp = async (req, res) => {
         if (rsvp.error) {
             return res.status(400).json({
                 success: false,
-                message: newRsvp.error
+                message: rsvp.error
             });
         }
 
@@ -35,9 +35,9 @@ const createRsvp = async (req, res) => {
     }
 };
 
-
 const cancelRsvp = async (req, res) => {
     const { id } = req.params;
+    
     const user_id = req.user.id;
 
     if (!id || isNaN(id)) {
@@ -60,7 +60,7 @@ const getMyRsvps = async (req, res) => {
     const user_id = req.user.id;
     try {
         const rsvps = await queries.getRsvpsByUserId(user_id);
-        return res.status(200).json({ success: true,  rsvps });
+        return res.status(200).json({ success: true, rsvps });
     } catch (error) {
         console.error("Error fetching RSVPs:", error);
         return res.status(500).json({ success: false, message: "Internal server error." });

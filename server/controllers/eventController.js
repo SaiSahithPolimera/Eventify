@@ -97,7 +97,7 @@ const getEvent = async (req, res) => {
 
 const updateEvent = async (req, res) => {
     const { id } = req.params;
-    const { title, description, date, location } = req.body;
+    const { title, description, date, location, time } = req.body;
     const errors = validationResult(req);
 
     if (!id || isNaN(id)) {
@@ -237,7 +237,7 @@ const addTickets = async (req, res) => {
 
     try {
         const ticketData = await queries.addTickets(event_id, type, price, quantity);
-        if (!result) {
+        if (!ticketData) {
             return res.status(400).json({
                 success: false,
                 message: "Adding tickets failed"
@@ -265,7 +265,7 @@ const addTickets = async (req, res) => {
 
 const updateTickets = async (req, res) => {
     const { type, price, quantity } = req.body;
-    const { id: event_id, ticketId } = req.params;
+    const { id: event_id, ticket_id } = req.params;
     const event = await queries.getEventById(event_id);
 
     if (!event) {
@@ -295,7 +295,7 @@ const updateTickets = async (req, res) => {
     }
 
     try {
-        const result = await queries.updateTickets(event_id, type, price, quantity);
+        const result = await queries.updateTickets(event_id, type, price, quantity, ticket_id);
         if (!result) {
             return res.status(400).json({
                 success: false,
@@ -317,7 +317,6 @@ const updateTickets = async (req, res) => {
 
 
 const deleteTickets = async (req, res) => {
-    const { type } = req.params;
     const { id: event_id, ticketId } = req.params;
     const event = await queries.getEventById(event_id);
 
@@ -383,4 +382,120 @@ const getTickets = async (req, res) => {
     }
 };
 
-export { getEvents, createEvent, updateEvent, deleteEvent, getEvent, addTickets, updateTickets, deleteTickets, getTickets };
+const getEventRsvps = async (req, res) => {
+    const { id } = req.params;
+    const userId = req.user.id;
+
+    try {
+        const event = await queries.getEventById(id);
+        if (!event) {
+            return res.status(404).json({
+                success: false,
+                message: "Event not found"
+            });
+        }
+
+        if (event.organizer_id !== userId) {
+            return res.status(403).json({
+                success: false,
+                message: "You are not authorized to view RSVPs for this event"
+            });
+        }
+
+        const rsvps = await queries.getEventRsvps(id);
+
+        return res.status(200).json({
+            success: true,
+            rsvps
+        });
+    } catch (error) {
+        console.error("Error fetching event RSVPs:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Internal server error"
+        });
+    }
+};
+
+const getEventStats = async (req, res) => {
+    const { id } = req.params;
+    const userId = req.user.id;
+
+    try {
+        const event = await queries.getEventById(id);
+        if (!event) {
+            return res.status(404).json({
+                success: false,
+                message: "Event not found"
+            });
+        }
+
+        if (event.organizer_id !== userId) {
+            return res.status(403).json({
+                success: false,
+                message: "You are not authorized to view stats for this event"
+            });
+        }
+
+        const stats = await queries.getEventStats(id);
+
+        return res.status(200).json({
+            success: true,
+            stats
+        });
+    } catch (error) {
+        console.error("Error fetching event stats:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Internal server error"
+        });
+    }
+};
+
+
+const getUserDataById = async (req, res) => {
+    const { id } = req.params;
+
+    if (!id || isNaN(id)) {
+        return res.status(400).json({
+            success: false,
+            message: "Invalid user ID"
+        });
+    }
+
+    try {
+        const userData = await queries.getUserDataById(id);
+        if (!userData) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found"
+            });
+        }
+        return res.status(200).json({
+            success: true,
+            userData
+        });
+    }
+    catch (error) {
+        console.error("Error fetching user data:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Internal server error"
+        });
+    }
+};
+
+export {
+    getEvents,
+    createEvent,
+    updateEvent,
+    deleteEvent,
+    getEvent,
+    addTickets,
+    updateTickets,
+    deleteTickets,
+    getTickets,
+    getEventRsvps,
+    getEventStats,
+    getUserDataById
+};

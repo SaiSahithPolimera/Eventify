@@ -7,7 +7,7 @@ const Home = () => {
 
             <div className="relative z-10 w-1/2 px-16 py-2 flex flex-col justify-center text-white gap-4">
                 <div className="flex flex-col gap-3">
-                    <h1 className="text-6xl font-serif ">
+                    <h1 className="text-6xl font-sans ">
                         Eventify
                     </h1>
                     <p className="text-lg mb-8 font-sans max-w-md text-rose-50/90">
