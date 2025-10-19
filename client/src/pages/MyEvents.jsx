@@ -53,13 +53,11 @@ const MyEvents = () => {
       setLoading(true);
       setError("");
 
-      const res = await fetch(`${BASE_URL}/events`, {
+      const res = await fetch(`${BASE_URL}/events/my-events/`, {
+        method: "GET",
         credentials: "include",
       });
 
-      if (!res.ok) {
-        throw new Error("Failed to fetch events");
-      }
 
       const data = await res.json();
       const eventsList = Array.isArray(data.events) ? data.events : [];
@@ -404,11 +402,10 @@ const MyEvents = () => {
                                     Ticket Type:
                                   </span>
                                   <span
-                                    className={`px-2 py-1 rounded text-xs font-semibold ${
-                                      ticket.type === "free"
+                                    className={`px-2 py-1 rounded text-xs font-semibold ${ticket.type === "free"
                                         ? "bg-green-100 text-green-700"
                                         : "bg-blue-100 text-blue-700"
-                                    }`}
+                                      }`}
                                   >
                                     {ticket.type === "free"
                                       ? "Free"
@@ -453,13 +450,13 @@ const MyEvents = () => {
                       <div className="ml-4 flex flex-col gap-2 flex-shrink-0">
                         <button
                           onClick={() => handleEdit(event)}
-                          className="px-4 py-2 rounded-lg text-sm font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 transition-colors border border-blue-200"
+                          className="px-4 py-2 rounded-lg text-sm font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 transition-colors border border-blue-200 cursor-pointer"
                         >
                           Edit
                         </button>
                         <button
                           onClick={() => setShowDeleteConfirm(event.id)}
-                          className="px-4 py-2 rounded-lg text-sm font-semibold text-red-600 bg-red-50 hover:bg-red-100 transition-colors border border-red-200"
+                          className="px-4 py-2 rounded-lg text-sm font-semibold text-red-600 bg-red-50 hover:bg-red-100 transition-colors border border-red-200 cursor-pointer"
                         >
                           Delete
                         </button>
@@ -607,9 +604,8 @@ const MyEvents = () => {
               <button
                 onClick={handleSaveEdit}
                 disabled={updating}
-                className={`flex-1 bg-rose-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-rose-700 transition-colors cursor-pointer ${
-                  updating ? "opacity-60 cursor-not-allowed" : ""
-                }`}
+                className={`flex-1 bg-rose-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-rose-700 transition-colors cursor-pointer ${updating ? "opacity-60 cursor-not-allowed" : ""
+                  }`}
               >
                 {updating ? "Saving..." : "Save Changes"}
               </button>

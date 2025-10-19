@@ -4,6 +4,8 @@ import Filterbar from "../components/Filterbar";
 import BrowseEventsTab from "../components/BrowseEventsTab";
 import EventDetailModal from "../components/EventDetailModal";
 import MyRsvpsTab from "../components/MyRsvpTab";
+import ResponseModal from "../components/ResponseModal";
+
 
 const Dashboard = () => {
   const BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -15,6 +17,7 @@ const Dashboard = () => {
   const [rsvpdEvents, setRsvpdEvents] = useState([]);
   const [loadingRsvpdEvents, setLoadingRsvpdEvents] = useState(false);
   const [activeTab, setActiveTab] = useState("browse");
+  const [responseModal, setResponseModal] = useState(null);
 
   const [filters, setFilters] = useState({
     location: "",
@@ -25,6 +28,14 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [cancelingRsvp, setCancelingRsvp] = useState(null);
+
+  const showResponse = (title, message, type = "success") => {
+    setResponseModal({ title, message, type });
+  };
+
+  const closeResponse = () => {
+    setResponseModal(null);
+  };
 
   const fetchUserRsvps = useCallback(async () => {
     try {
@@ -203,19 +214,19 @@ const Dashboard = () => {
       if (!selectedEvent) return;
 
       if (!selectedEvent.tickets || selectedEvent.tickets.length === 0) {
-        alert("This event does not have tickets available for RSVP");
+        showResponse("Unable to RSVP", "This event does not have tickets available for RSVP", "error");
         return;
       }
 
       const ticket = selectedEvent.tickets[0];
 
       if (userRsvps.has(selectedEvent.id)) {
-        alert("You have already RSVP'd to this event!");
+        showResponse("Already Registered", "You have already RSVP'd to this event!", "info");
         return;
       }
 
       if (!ticket.quantity || parseInt(ticket.quantity) <= 0) {
-        alert("Sorry, tickets are sold out!");
+        showResponse("Sold Out", "Sorry, tickets are sold out!", "error");
         return;
       }
 
@@ -236,24 +247,22 @@ const Dashboard = () => {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.message || "Failed to RSVP");
+        showResponse("RSVP Failed", data.message || "Failed to RSVP", "error");
+        return;
       }
 
-      alert("RSVP successful! Ticket confirmed.");
+      showResponse("Success!", data.message || "RSVP confirmed! Check your email for details.", "success");
       setSelectedEvent(null);
       fetchEvents();
       fetchUserRsvps();
       fetchRsvpdEvents();
     } catch (err) {
       console.error("RSVP error:", err);
-      alert(err.message);
+      showResponse("Error", err.message || "Something went wrong", "error");
     }
   };
 
   const handleCancelRsvp = async (rsvpId) => {
-    if (!window.confirm("Are you sure you want to cancel this RSVP?")) {
-      return;
-    }
 
     try {
       setCancelingRsvp(rsvpId);
@@ -265,16 +274,18 @@ const Dashboard = () => {
 
       if (!res.ok) {
         const errorData = await res.json();
-        throw new Error(errorData.message || "Failed to cancel RSVP");
+        showResponse("Cancellation Failed", errorData.message || "Failed to cancel RSVP", "error");
+        return;
       }
 
-      alert("RSVP cancelled successfully");
+      const successData = await res.json();
+      showResponse("Cancelled", successData.message || "RSVP cancelled successfully", "success");
       fetchRsvpdEvents();
       fetchEvents();
       fetchUserRsvps();
     } catch (err) {
       console.error("Cancel RSVP error:", err);
-      alert(err.message);
+      showResponse("Error", err.message || "Something went wrong", "error");
     } finally {
       setCancelingRsvp(null);
     }
@@ -299,7 +310,7 @@ const Dashboard = () => {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center bg-slate-50 p-8 rounded-lg shadow-sm border border-slate-200">
-          <p className="text-4xl mb-4 font-bold text-slate-700">Warning</p>
+          <p className="text-4xl mb-4 font-bold text-slate-700">⚠️</p>
           <p className="text-lg font-medium text-slate-700 mb-4">{error}</p>
           <button
             onClick={fetchEvents}
@@ -319,11 +330,10 @@ const Dashboard = () => {
         <div className="flex gap-4 border-b border-slate-200">
           <button
             onClick={() => setActiveTab("browse")}
-            className={`pb-4 px-2 font-sans text-lg cursor-pointer transition-all ${
-              activeTab === "browse"
+            className={`pb-4 px-2 font-sans text-lg cursor-pointer transition-all ${activeTab === "browse"
                 ? "text-rose-600 border-b-2 border-rose-600"
                 : "text-slate-600 hover:text-slate-900"
-            }`}
+              }`}
           >
             Browse Events
           </button>
@@ -332,11 +342,10 @@ const Dashboard = () => {
               setActiveTab("my-rsvps");
               fetchRsvpdEvents();
             }}
-            className={`pb-4 px-2 font-sans cursor-pointer text-lg transition-all ${
-              activeTab === "my-rsvps"
+            className={`pb-4 px-2 font-sans cursor-pointer text-lg transition-all ${activeTab === "my-rsvps"
                 ? "text-rose-600 border-b-2 border-rose-600"
                 : "text-slate-600 hover:text-slate-900"
-            }`}
+              }`}
           >
             My RSVP'd Events ({userRsvps.size})
           </button>
@@ -374,6 +383,15 @@ const Dashboard = () => {
         onClose={() => setSelectedEvent(null)}
         onRsvp={handleRSVP}
       />
+
+      {responseModal && (
+        <ResponseModal
+          title={responseModal.title}
+          message={responseModal.message}
+          type={responseModal.type}
+          onClose={closeResponse}
+        />
+      )}
     </div>
   );
 };

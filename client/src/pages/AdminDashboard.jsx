@@ -1,10 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import Navbar from "../components/Navbar";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 
 const AdminDashboard = () => {
-  const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000/api";
+  const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
   const [events, setEvents] = useState([]);
   const [selectedEventId, setSelectedEventId] = useState("");
@@ -17,37 +15,20 @@ const AdminDashboard = () => {
 
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
-  const [filterTicketType, setFilterTicketType] = useState("all");
   const [sortBy, setSortBy] = useState("name");
 
-  useEffect(() => {
-    fetchMyEvents();
-  }, []);
-
-  useEffect(() => {
-    if (!selectedEventId) return;
-    fetchEventDetails();
-  }, [selectedEventId]);
-
-  useEffect(() => {
-    applyFiltersAndSort();
-  }, [searchTerm, attendees, filterStatus, filterTicketType, sortBy]);
-
-
-  const fetchMyEvents = async () => {
+  const fetchMyEvents = useCallback(async () => {
     try {
       setLoading(true);
       setError("");
-
-      const res = await fetch(`${BASE_URL}/events`, {
+      const res = await fetch(`${BASE_URL}/events/my-events`, {
+        method: "GET",
         credentials: "include",
-      });
-
-      if (!res.ok) {
-        throw new Error("Failed to fetch events");
-      }
+      });      
 
       const data = await res.json();
+
+      
       setEvents(Array.isArray(data.events) ? data.events : []);
     } catch (err) {
       console.error("Error fetching events:", err);
@@ -55,9 +36,13 @@ const AdminDashboard = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [BASE_URL]);
 
-  const fetchEventDetails = async () => {
+  useEffect(() => {
+    fetchMyEvents();
+  }, [fetchMyEvents]);
+
+  const fetchEventDetails = useCallback(async () => {
     try {
       setLoading(true);
       setError("");
@@ -102,7 +87,6 @@ const AdminDashboard = () => {
         (attendee) => attendee && attendee.name && attendee.email
       );
 
-
       setAttendees(validAttendees);
       setFilteredAttendees(validAttendees);
     } catch (err) {
@@ -113,7 +97,12 @@ const AdminDashboard = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedEventId, BASE_URL]);
+
+  useEffect(() => {
+    if (!selectedEventId) return;
+    fetchEventDetails();
+  }, [selectedEventId, fetchEventDetails]);
 
   const fetchUserData = async (rsvp) => {
     try {
@@ -125,7 +114,6 @@ const AdminDashboard = () => {
         console.warn(`Failed to fetch user ${rsvp.user_id}`);
         return null;
       }
-
 
       const { userData } = await res.json();
 
@@ -146,23 +134,7 @@ const AdminDashboard = () => {
     }
   };
 
-
-
-
-
-  const downloadFile = async (response, fileName) => {
-    const blob = await response.blob();
-    const url = window.URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.setAttribute("download", fileName);
-    document.body.appendChild(link);
-    link.click();
-    link.parentNode.removeChild(link);
-    window.URL.revokeObjectURL(url);
-  };
-
-  const applyFiltersAndSort = () => {
+  const applyFiltersAndSort = useCallback(() => {
     let filtered = attendees.filter((attendee) => {
       const matchesSearch =
         attendee.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -171,10 +143,7 @@ const AdminDashboard = () => {
       const matchesStatus =
         filterStatus === "all" || attendee.status === filterStatus;
 
-      const matchesTicketType =
-        filterTicketType === "all" || attendee.ticket_type === filterTicketType;
-
-      return matchesSearch && matchesStatus && matchesTicketType;
+      return matchesSearch && matchesStatus;
     });
 
     filtered.sort((a, b) => {
@@ -185,20 +154,21 @@ const AdminDashboard = () => {
           return (a.email || "").localeCompare(b.email || "");
         case "date":
           return new Date(b.created_at) - new Date(a.created_at);
-        case "ticket":
-          return (a.ticket_type || "").localeCompare(b.ticket_type || "");
         default:
           return 0;
       }
     });
 
     setFilteredAttendees(filtered);
-  };
+  }, [attendees, searchTerm, filterStatus, sortBy]);
+
+  useEffect(() => {
+    applyFiltersAndSort();
+  }, [applyFiltersAndSort]);
 
   const resetFilters = () => {
     setSearchTerm("");
     setFilterStatus("all");
-    setFilterTicketType("all");
     setSortBy("name");
   };
 
@@ -206,54 +176,6 @@ const AdminDashboard = () => {
     setSelectedEventId(eventId);
     resetFilters();
   };
-
-  const exportToCSV = () => {
-    const headers = ["Name", "Email", "Role", "Status"];
-    const rows = filteredAttendees.map(a => [
-      a.name,
-      a.email,
-      a.role,
-      a.status
-    ]);
-
-    const csvContent =
-      "data:text/csv;charset=utf-8," +
-      [headers.join(","), ...rows.map(r => r.join(","))].join("\n");
-
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `${selectedEvent?.title || "attendees"}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
-
-  const exportToPDF = () => {
-    const doc = new jsPDF();
-    doc.text(selectedEvent?.title || "Attendees", 14, 15);
-
-    const tableColumn = ["Name", "Email", "Role", "Status"];
-    const tableRows = filteredAttendees.map(a => [
-      a.name,
-      a.email,
-      a.role,
-      a.status,
-    ]);
-
-    autoTable(doc, {
-      head: [tableColumn],
-      body: tableRows,
-      startY: 25,
-      styles: { fontSize: 10 },
-      headStyles: { fillColor: [245, 107, 107] },
-    });
-
-    doc.save(`${selectedEvent?.title || "attendees"}.pdf`);
-  };
-
-
 
   const renderStatCard = (label, value, bgColor, textColor) => (
     <div
@@ -279,13 +201,13 @@ const AdminDashboard = () => {
           "Total Attendees",
           stats?.total_rsvps || 0,
           "from-blue-50 to-blue-100",
-          "text-black"
+          "text-blue-900"
         )}
         {renderStatCard(
           "Total Revenue",
           `$${parseFloat(stats?.total_revenue || 0).toFixed(2)}`,
-          "white",
-          "text-black"
+          "from-green-50 to-green-100",
+          "text-green-900"
         )}
       </div>
 
@@ -301,17 +223,16 @@ const AdminDashboard = () => {
           </p>
         </div>
         <div>
-          <p className="text-slate-600 font-semibold"> Time</p>
+          <p className="text-slate-600 font-semibold">Time</p>
           <p className="text-slate-900">{selectedEvent?.time || "TBA"}</p>
         </div>
         <div>
-          <p className="text-slate-600 font-semibold"> Location</p>
+          <p className="text-slate-600 font-semibold">Location</p>
           <p className="text-slate-900">{selectedEvent?.location || "TBA"}</p>
         </div>
       </div>
     </div>
   );
-
 
   const renderFilterSection = () => (
     <div className="p-6 border-b border-slate-200 bg-slate-50">
@@ -344,7 +265,6 @@ const AdminDashboard = () => {
           </select>
         </div>
 
-
         <div>
           <label className="block text-sm font-semibold text-slate-700 mb-2">
             Sort By
@@ -363,7 +283,7 @@ const AdminDashboard = () => {
 
       <button
         onClick={resetFilters}
-        className="text-sm font-semibold text-slate-600 hover:text-slate-900 underline"
+        className="text-sm font-semibold text-slate-600 hover:text-slate-900 underline cursor-pointer"
       >
         Clear All Filters
       </button>
@@ -381,7 +301,7 @@ const AdminDashboard = () => {
         <div className="p-12 text-center text-slate-500">
           <p className="text-lg font-medium">📋 No attendees found</p>
           <p className="text-sm mt-1">
-            {searchTerm || filterStatus !== "all" || filterTicketType !== "all"
+            {searchTerm || filterStatus !== "all"
               ? "Try adjusting your filters"
               : "No one has registered yet"}
           </p>
@@ -427,25 +347,21 @@ const AdminDashboard = () => {
                   <td className="px-4 py-4">
                     <span
                       className={`px-3 py-1 rounded-full text-xs font-semibold inline-block ${attendee.role === "organizer"
-                        ? "bg-purple-100 text-purple-700"
-                        : "bg-slate-100 text-slate-700"
+                          ? "bg-purple-100 text-purple-700"
+                          : "bg-slate-100 text-slate-700"
                         }`}
                     >
-                      {attendee.role === "organizer"
-                        ? "Organizer"
-                        : "Attendee"}
+                      {attendee.role === "organizer" ? "Organizer" : "Attendee"}
                     </span>
                   </td>
                   <td className="px-4 py-4">
                     <span
                       className={`px-3 py-1 rounded-full text-xs font-semibold inline-block ${attendee.status === "confirmed"
-                        ? "bg-emerald-100 text-emerald-700"
-                        : "bg-red-100 text-red-700"
+                          ? "bg-emerald-100 text-emerald-700"
+                          : "bg-red-100 text-red-700"
                         }`}
                     >
-                      {attendee.status === "confirmed"
-                        ? "Confirmed"
-                        : "Cancelled"}
+                      {attendee.status === "confirmed" ? "Confirmed" : "Cancelled"}
                     </span>
                   </td>
                 </tr>
@@ -465,15 +381,17 @@ const AdminDashboard = () => {
             of{" "}
             <span className="font-semibold text-slate-900">{attendees.length}</span>{" "}
             attendees
-            {(searchTerm || filterStatus !== "all" || filterTicketType !== "all") && (
+            {(searchTerm || filterStatus !== "all") && (
               <span className="text-slate-500 ml-2">(filtered)</span>
             )}
+          </div>
+          <div className="text-xs text-slate-500">
+            Last updated: {new Date().toLocaleTimeString()}
           </div>
         </div>
       )}
     </>
   );
-
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -522,7 +440,6 @@ const AdminDashboard = () => {
         {selectedEventId && selectedEvent && stats ? (
           <>
             {renderEventSummary()}
-
             <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
               {renderFilterSection()}
               {renderAttendeeTable()}
@@ -537,27 +454,6 @@ const AdminDashboard = () => {
             </p>
           </div>
         )}
-        <div className="flex  justify-between gap-3 p-4 border-b border-slate-200 bg-slate-50">
-          <h3 className="text-2xl font-semibold">Export attendee details</h3>
-          <div className="flex gap-3">
-            <button
-              disabled={filteredAttendees.length === 0}
-              onClick={exportToCSV}
-              className={`px-4 py-2 rounded-lg text-sm font-semibold transition cursor-pointer ${filteredAttendees.length === 0
-                ? "bg-gray-300 text-gray-600 cursor-not-allowed"
-                : "bg-emerald-600 text-white hover:bg-emerald-700"
-                }`}
-            >
-              Export CSV
-            </button>
-            <button
-              onClick={exportToPDF}
-              className="px-4 py-2 bg-rose-600 text-white rounded-lg text-sm font-semibold hover:bg-rose-700 transition cursor-pointer"
-            >
-              Export PDF
-            </button>
-          </div>
-        </div>
       </div>
     </div>
   );

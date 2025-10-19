@@ -48,7 +48,7 @@ const EventCard = ({ event, userRsvps, onSelect }) => {
       className="bg-white border border-slate-200 rounded-lg hover:shadow-md transition-all duration-200 cursor-pointer overflow-hidden"
       onClick={() => onSelect(event)}
     >
-      <div className="flex items-center justify-between p-6">
+      <div className="flex flex-col md:flex-row md:items-center gap-4 md:justify-between p-6">
         <EventInfo
           event={event}
           hasTickets={hasTickets}
@@ -59,7 +59,7 @@ const EventCard = ({ event, userRsvps, onSelect }) => {
           ticketQuantity={ticketQuantity}
         />
 
-        <div className="ml-4 flex-shrink-0">
+        <div className="flex-shrink-0">
           <button
             disabled={buttonState.disabled}
             className={buttonState.className}
