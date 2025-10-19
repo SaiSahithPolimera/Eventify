@@ -1,4 +1,5 @@
 import { queries } from "../db/queries.js";
+import { sendEventConfirmation } from "../utils/emailService.js";
 
 const createRsvp = async (req, res) => {
     const { event_id, ticket_id } = req.body;
@@ -21,6 +22,16 @@ const createRsvp = async (req, res) => {
             });
         }
 
+        const event = await queries.getEventById(event_id);
+        const user = await queries.getUserDataById(user_id);
+
+        await sendEventConfirmation(user.email, {
+            title: event.title,
+            date: event.date,
+            time: event.time,
+            location: event.location,
+        });
+
         return res.status(201).json({
             success: true,
             message: "RSVP created successfully",
@@ -37,7 +48,7 @@ const createRsvp = async (req, res) => {
 
 const cancelRsvp = async (req, res) => {
     const { id } = req.params;
-    
+
     const user_id = req.user.id;
 
     if (!id || isNaN(id)) {

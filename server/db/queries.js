@@ -360,9 +360,36 @@ const getUserDataById = async (userId) => {
         return null;
     }
 };
+const getRsvpsForUpcomingEvents = async (startDate, endDate) => {
+    try {
+        const rsvps = await sql`
+            SELECT 
+                r.id,
+                r.event_id,
+                r.user_id,
+                r.ticket_id,
+                r.status,
+                e.id as eid,
+                e.title,
+                e.date,
+                e.location,
+                u.id as uid,
+                u.email,
+                u.name
+            FROM rsvps r
+            INNER JOIN events e ON r.event_id = e.id
+            INNER JOIN users u ON r.user_id = u.id
+            WHERE r.status = 'confirmed'
+            AND e.date >= ${startDate}
+            AND e.date <= ${endDate}
+            ORDER BY e.date ASC
+        `;
+        return rsvps;
+    } catch (error) {
+        console.error("Error fetching RSVPs for upcoming events:", error);
+        return [];
+    }
+};
 
 
-
-
-
-export const queries = { getUserCredentials, createUser, getAllEvents, createEvent, updateEvent, deleteEvent, getEventById, addTickets, updateTickets, deleteTickets, getTickets, createEventRsvp, cancelRsvp, getRsvpsByEventId, getRsvpsByUserId, getEventStats, getEventRsvps, getUserDataById };
+export const queries = { getUserCredentials, createUser, getAllEvents, createEvent, updateEvent, deleteEvent, getEventById, addTickets, updateTickets, deleteTickets, getTickets, createEventRsvp, cancelRsvp, getRsvpsByEventId, getRsvpsByUserId, getEventStats, getEventRsvps, getUserDataById, getRsvpsForUpcomingEvents };
