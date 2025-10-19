@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import Navbar from "../components/Navbar";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 const AdminDashboard = () => {
   const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000/api";
@@ -145,6 +147,21 @@ const AdminDashboard = () => {
   };
 
 
+
+
+
+  const downloadFile = async (response, fileName) => {
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", fileName);
+    document.body.appendChild(link);
+    link.click();
+    link.parentNode.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  };
+
   const applyFiltersAndSort = () => {
     let filtered = attendees.filter((attendee) => {
       const matchesSearch =
@@ -189,6 +206,53 @@ const AdminDashboard = () => {
     setSelectedEventId(eventId);
     resetFilters();
   };
+
+  const exportToCSV = () => {
+    const headers = ["Name", "Email", "Role", "Status"];
+    const rows = filteredAttendees.map(a => [
+      a.name,
+      a.email,
+      a.role,
+      a.status
+    ]);
+
+    const csvContent =
+      "data:text/csv;charset=utf-8," +
+      [headers.join(","), ...rows.map(r => r.join(","))].join("\n");
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `${selectedEvent?.title || "attendees"}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+
+  const exportToPDF = () => {
+    const doc = new jsPDF();
+    doc.text(selectedEvent?.title || "Attendees", 14, 15);
+
+    const tableColumn = ["Name", "Email", "Role", "Status"];
+    const tableRows = filteredAttendees.map(a => [
+      a.name,
+      a.email,
+      a.role,
+      a.status,
+    ]);
+
+    autoTable(doc, {
+      head: [tableColumn],
+      body: tableRows,
+      startY: 25,
+      styles: { fontSize: 10 },
+      headStyles: { fillColor: [245, 107, 107] },
+    });
+
+    doc.save(`${selectedEvent?.title || "attendees"}.pdf`);
+  };
+
 
 
   const renderStatCard = (label, value, bgColor, textColor) => (
@@ -405,9 +469,6 @@ const AdminDashboard = () => {
               <span className="text-slate-500 ml-2">(filtered)</span>
             )}
           </div>
-          <div className="text-xs text-slate-500">
-            Last updated: {new Date().toLocaleTimeString()}
-          </div>
         </div>
       )}
     </>
@@ -461,6 +522,7 @@ const AdminDashboard = () => {
         {selectedEventId && selectedEvent && stats ? (
           <>
             {renderEventSummary()}
+
             <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
               {renderFilterSection()}
               {renderAttendeeTable()}
@@ -475,6 +537,27 @@ const AdminDashboard = () => {
             </p>
           </div>
         )}
+        <div className="flex  justify-between gap-3 p-4 border-b border-slate-200 bg-slate-50">
+          <h3 className="text-2xl font-semibold">Export attendee details</h3>
+          <div className="flex gap-3">
+            <button
+              disabled={filteredAttendees.length === 0}
+              onClick={exportToCSV}
+              className={`px-4 py-2 rounded-lg text-sm font-semibold transition cursor-pointer ${filteredAttendees.length === 0
+                ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+                : "bg-emerald-600 text-white hover:bg-emerald-700"
+                }`}
+            >
+              Export CSV
+            </button>
+            <button
+              onClick={exportToPDF}
+              className="px-4 py-2 bg-rose-600 text-white rounded-lg text-sm font-semibold hover:bg-rose-700 transition cursor-pointer"
+            >
+              Export PDF
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
