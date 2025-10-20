@@ -26,10 +26,10 @@ const AddTickets = () => {
   const fetchEventAndTickets = async () => {
     try {
       const [eventRes, ticketsRes] = await Promise.all([
-        fetch(`${import.meta.env.VITE_API_BASE_URL}/events/${id}`, {
+        fetch(`${import.meta.env.VITE_API_URL}/events/${id}`, {
           credentials: 'include'
         }),
-        fetch(`${import.meta.env.VITE_API_BASE_URL}/events/${id}/tickets`, {
+        fetch(`${import.meta.env.VITE_API_URL}/events/${id}/tickets`, {
           credentials: 'include'
         })
       ]);
@@ -84,7 +84,7 @@ const AddTickets = () => {
 
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL}/events/${id}/tickets`,
+        `${import.meta.env.VITE_API_URL}/events/${id}/tickets`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -135,7 +135,7 @@ const AddTickets = () => {
 
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL}/events/${id}/tickets/${ticketId}`,
+        `${import.meta.env.VITE_API_URL}/events/${id}/tickets/${ticketId}`,
         {
           method: 'DELETE',
           credentials: 'include'

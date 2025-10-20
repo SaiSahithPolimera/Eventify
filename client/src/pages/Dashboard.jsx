@@ -8,7 +8,7 @@ import ResponseModal from "../components/ResponseModal";
 
 
 const Dashboard = () => {
-  const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+  const BASE_URL = import.meta.env.VITE_API_URL;
 
   const [events, setEvents] = useState([]);
   const [filtered, setFiltered] = useState([]);

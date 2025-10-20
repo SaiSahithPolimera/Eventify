@@ -3,13 +3,12 @@ FROM node:20-alpine
 WORKDIR /app
 
 COPY package*.json ./
+RUN npm install --production
 
-RUN npm ci --only=production
 
 COPY . .
 
-EXPOSE 5000
+EXPOSE 3000
 
-ENV NODE_ENV=production
-
-CMD ["node", "app.js"]
+# Start the app
+CMD ["node", "--dns-result-order=ipv4first", "app.js"]

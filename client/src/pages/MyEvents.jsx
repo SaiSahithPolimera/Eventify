@@ -3,7 +3,7 @@ import Navbar from "../components/Navbar";
 import CreateEventModal from "../components/CreateEventModal";
 
 const MyEvents = () => {
-  const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+  const BASE_URL = import.meta.env.VITE_API_URL;
 
   const [events, setEvents] = useState([]);
   const [filteredEvents, setFilteredEvents] = useState([]);
