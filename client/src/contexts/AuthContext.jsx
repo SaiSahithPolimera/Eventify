@@ -8,17 +8,35 @@ export const AuthProvider = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    
-    if (storedUser) {
+    const verifyUserSession = async () => {
       try {
-        setUser(JSON.parse(storedUser));
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/verify-session`, {
+          credentials: 'include',
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success && data.user) {
+            setUser(data.user);
+            localStorage.setItem('user', JSON.stringify(data.user));
+          } else {
+            setUser(null);
+            localStorage.removeItem('user');
+          }
+        } else {
+          setUser(null);
+          localStorage.removeItem('user');
+        }
       } catch (error) {
-        console.error('Failed to parse stored user:', error);
+        console.error('Session verification failed:', error);
+        setUser(null);
         localStorage.removeItem('user');
+      } finally {
+        setLoading(false);
       }
-    }
-    setLoading(false);
+    };
+
+    verifyUserSession();
   }, []);
 
   const login = async (email, password) => {

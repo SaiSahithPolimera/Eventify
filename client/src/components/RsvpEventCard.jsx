@@ -1,46 +1,32 @@
 import { useState } from "react";
-import ResponseModal from "./ResponseModal";
-import ConfirmationModal from "./ConfirmationModal";
+import Modal from "./Modal";
 
 const RsvpEventCard = ({ event, onCancelRsvp, isCanceling }) => {
-  const [responseModal, setResponseModal] = useState(null);
-  const [confirmationModal, setConfirmationModal] = useState(null);
+  const [modal, setModal] = useState({ type: null, data: null });
 
-  const ticket = event.tickets && event.tickets.length > 0 ? event.tickets[0] : null;
+  const ticket = event.tickets?.[0];
   const price = ticket ? parseFloat(ticket.price) : 0;
 
-  const showResponse = (title, message, type = "success") => {
-    setResponseModal({ title, message, type });
-  };
-
-  const closeResponse = () => {
-    setResponseModal(null);
-  };
-
-  const showConfirmation = () => {
-    setConfirmationModal(true);
-  };
-
-  const closeConfirmation = () => {
-    setConfirmationModal(false);
-  };
+  const openModal = (type, data = null) => setModal({ type, data });
+  const closeModal = () => setModal({ type: null, data: null });
 
   const formatGoogleCalendarDate = (date, time) => {
     try {
       const parsedDate = new Date(date);
       if (isNaN(parsedDate)) throw new Error("Invalid date");
 
-      const year = parsedDate.getFullYear();
-      const month = parsedDate.getMonth();
-      const day = parsedDate.getDate();
-
-      const [hours, minutes, seconds = "00"] = time.split(":").map(Number);
-
-      const start = new Date(year, month, day, hours, minutes, seconds);
-      const end = new Date(start.getTime() + 2 * 60 * 60 * 1000);
+      const [hours, minutes] = time.split(":").map(Number);
+      const start = new Date(
+        parsedDate.getFullYear(),
+        parsedDate.getMonth(),
+        parsedDate.getDate(),
+        hours,
+        minutes
+      );
+      const end = new Date(start.getTime() + 2 * 60 * 60 * 1000); // Assume 2-hour duration
 
       const toGoogleDate = (d) =>
-        d.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
+        d.toISOString().replace(/[-:.]/g, "").slice(0, -3) + "Z";
 
       return {
         startDate: toGoogleDate(start),
@@ -48,17 +34,21 @@ const RsvpEventCard = ({ event, onCancelRsvp, isCanceling }) => {
       };
     } catch (err) {
       console.error("Error formatting Google Calendar date:", err);
-      showResponse("Error", "Failed to format calendar date", "error");
+      openModal("response", {
+        title: "Error",
+        message: "Failed to format calendar date",
+        type: "error",
+      });
       return { startDate: "", endDate: "" };
     }
   };
 
   const generateGoogleCalendarUrl = (event) => {
-    const { startDate, endDate } = formatGoogleCalendarDate(event.date, event.time);
-
-    if (!startDate || !endDate) {
-      return null;
-    }
+    const { startDate, endDate } = formatGoogleCalendarDate(
+      event.date,
+      event.time
+    );
+    if (!startDate || !endDate) return null;
 
     const params = new URLSearchParams({
       action: "TEMPLATE",
@@ -76,43 +66,65 @@ const RsvpEventCard = ({ event, onCancelRsvp, isCanceling }) => {
     if (googleCalendarUrl) {
       window.open(googleCalendarUrl, "_blank");
     } else {
-      showResponse("Error", "Unable to generate calendar link", "error");
+      openModal("response", {
+        title: "Error",
+        message: "Unable to generate calendar link",
+        type: "error",
+      });
     }
   };
 
-  const handleCancelRsvpConfirm = async () => {
-    closeConfirmation();
-    try {
-      await onCancelRsvp(event.rsvp_id);
-    } catch (err) {
-      showResponse("Error", err.message || "Failed to cancel RSVP", "error");
-    }
+  const handleCancelRsvpConfirm = () => {
+    closeModal();
+    onCancelRsvp(event.rsvp_id);
   };
 
   const googleCalendarUrl = generateGoogleCalendarUrl(event);
 
   return (
     <>
-      {responseModal && (
-        <ResponseModal
-          title={responseModal.title}
-          message={responseModal.message}
-          type={responseModal.type}
-          onClose={closeResponse}
-        />
+      {modal.type === "response" && (
+        <Modal show={true} onClose={closeModal} maxWidth="max-w-md">
+          <h2 className="text-2xl font-bold text-slate-900 mb-4">
+            {modal.data.title}
+          </h2>
+          <p className="text-slate-600 mb-6">{modal.data.message}</p>
+          <div className="flex justify-end">
+            <button
+              onClick={closeModal}
+              className="bg-slate-100 text-slate-700 px-6 py-2 rounded-lg font-semibold hover:bg-slate-200 cursor-pointer"
+            >
+              Close
+            </button>
+          </div>
+        </Modal>
       )}
 
-      {confirmationModal && (
-        <ConfirmationModal
-          title="Cancel RSVP?"
-          message={`Are you sure you want to cancel your RSVP for "${event.title}"? This action cannot be undone.`}
-          confirmText="Cancel RSVP"
-          cancelText="Keep RSVP"
-          onConfirm={handleCancelRsvpConfirm}
-          onCancel={closeConfirmation}
-          isLoading={isCanceling}
-          isDangerous={true}
-        />
+      {modal.type === "confirm" && (
+        <Modal show={true} onClose={closeModal} maxWidth="max-w-md">
+          <h2 className="text-2xl font-bold text-slate-900 mb-4">
+            Cancel RSVP?
+          </h2>
+          <p className="text-slate-600 mb-6">
+            Are you sure you want to cancel your RSVP for "{event.title}"? This
+            action cannot be undone.
+          </p>
+          <div className="flex gap-3">
+            <button
+              onClick={closeModal}
+              className="flex-1 bg-slate-100 cursor-pointer text-slate-700 px-6 py-3 rounded-lg font-semibold hover:bg-slate-200"
+            >
+              Keep RSVP
+            </button>
+            <button
+              onClick={handleCancelRsvpConfirm}
+              disabled={isCanceling}
+              className="flex-1 bg-red-600 text-white px-6 py-3 rounded-lg font-semibold  cursor-pointer hover:bg-red-700 disabled:opacity-60"
+            >
+              {isCanceling ? "Cancelling..." : "Cancel RSVP"}
+            </button>
+          </div>
+        </Modal>
       )}
 
       <div className="bg-white border border-slate-200 rounded-lg hover:shadow-md transition-all duration-200 overflow-hidden">
@@ -152,11 +164,13 @@ const RsvpEventCard = ({ event, onCancelRsvp, isCanceling }) => {
             </div>
             <div className="flex items-center gap-2 text-slate-600 sm:col-span-2">
               <span className="font-semibold flex-shrink-0">Location:</span>
-              <span className="break-words line-clamp-1">{event.location}</span>
+              <span className="break-words line-clamp-1">
+                {event.location}
+              </span>
             </div>
             <div className="flex items-center gap-2 text-slate-600">
               <span className="font-semibold flex-shrink-0">Type:</span>
-              <span className="capitalize">{event.locationType}</span>
+              <span className="capitalize">{event.locationType || "physical"}</span>
             </div>
             <div className="flex items-center gap-2 text-slate-600">
               <span className="font-semibold flex-shrink-0">Price:</span>
@@ -173,11 +187,11 @@ const RsvpEventCard = ({ event, onCancelRsvp, isCanceling }) => {
               Add to Calendar
             </button>
             <button
-              onClick={showConfirmation}
+              onClick={() => openModal("confirm")}
               disabled={isCanceling}
               className={`px-4 py-2 rounded-lg font-semibold cursor-pointer text-sm transition-all ${isCanceling
                   ? "bg-slate-100 text-slate-500 cursor-not-allowed opacity-60"
-                  : "bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 active:scale-95"
+                  : "bg-red-50 text-red-600 border border-red-200 hover:bg-red-100  active:scale-95"
                 }`}
             >
               {isCanceling ? "Cancelling..." : "Cancel RSVP"}
