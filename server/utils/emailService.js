@@ -15,7 +15,7 @@ transporter.verify((error, success) => {
   if (error) {
     console.error('Email service error:', error.message);
   } else {
-    console.log('Email service ready');
+    // console.log('Email service ready');
   }
 });
 

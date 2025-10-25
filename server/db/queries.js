@@ -1,10 +1,7 @@
-import postgres from "postgres";
 import dotenv from "dotenv";
+import sql from "./conn.js";
 
 dotenv.config();
-
-const connectionString = process.env.DATABASE_URL
-const sql = postgres(connectionString)
 
 const createUser = async (name, email, password, role) => {
     const ROLE = role.toLowerCase();
