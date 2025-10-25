@@ -1,6 +1,6 @@
 import { Router } from "express";
 import verifyToken from "../middleware/authMiddleware.js";
-import { getEvents, getEvent, createEvent, updateEvent, deleteEvent, addTickets, updateTickets, deleteTickets, getTickets, getEventRsvps, getEventStats, getUserDataById, getOrganizerEvents } from "../controllers/eventController.js";
+import { getEvents, getEvent, createEvent, updateEvent, deleteEvent, addTickets, updateTickets, deleteTickets, getTickets, getEventStats, getUserDataById, getOrganizerEvents } from "../controllers/eventController.js";
 import { isOrganizer } from "../middleware/roleMiddleware.js";
 import eventValidator from "../validators/eventValidator.js";
 import ticketValidator from "../validators/ticketValidator.js";
@@ -20,7 +20,6 @@ eventRouter.put("/api/events/:id/tickets/:ticket_id", verifyToken, ticketValidat
 eventRouter.delete("/api/events/:id/tickets/:ticket_id", verifyToken, isOrganizer, deleteTickets);
 
 
-eventRouter.get("/api/events/:id/rsvps", verifyToken, isOrganizer, getEventRsvps);
 eventRouter.get("/api/events/:id/stats", verifyToken, isOrganizer, getEventStats);
 
 eventRouter.get("/api/users/:id/", verifyToken, isOrganizer, getUserDataById);

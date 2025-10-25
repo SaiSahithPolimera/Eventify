@@ -2,7 +2,7 @@ import request from "supertest";
 import app from "../app.js";
 import sql from "../db/conn.js";
 
-describe("Events API", () => {
+describe("Events API Endpoints", () => {
     let organizerAgent;
     let attendeeAgent;
     let createdEventId;
@@ -22,7 +22,7 @@ describe("Events API", () => {
             .post("/api/auth/signup")
             .send({
                 name: "Test Organizer",
-                email: "organizer@test.com",
+                email: "organizer2@test.com",
                 password: "password123",
                 confirmPassword: "password123",
                 role: "organizer"
@@ -31,7 +31,7 @@ describe("Events API", () => {
         await organizerAgent
             .post("/api/auth/login")
             .send({
-                email: "organizer@test.com",
+                email: "organizer2@test.com",
                 password: "password123"
             });
 
@@ -39,7 +39,7 @@ describe("Events API", () => {
             .post("/api/auth/signup")
             .send({
                 name: "Second Organizer",
-                email: "organizer2@test.com",
+                email: "organizer2a@test.com",
                 password: "password123",
                 confirmPassword: "password123",
                 role: "organizer"
@@ -48,7 +48,7 @@ describe("Events API", () => {
         await organizerAgent2
             .post("/api/auth/login")
             .send({
-                email: "organizer2@test.com",
+                email: "organizer2a@test.com",
                 password: "password123"
             });
 
@@ -57,7 +57,7 @@ describe("Events API", () => {
             .post("/api/auth/signup")
             .send({
                 name: "Test Attendee",
-                email: "attendee@test.com",
+                email: "attendee2@test.com",
                 password: "password123",
                 confirmPassword: "password123",
                 role: "attendee"
@@ -66,7 +66,7 @@ describe("Events API", () => {
         await attendeeAgent
             .post("/api/auth/login")
             .send({
-                email: "attendee@test.com",
+                email: "attendee2@test.com",
                 password: "password123"
             });
     });

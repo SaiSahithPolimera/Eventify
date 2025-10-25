@@ -28,7 +28,7 @@ const getEvents = async (req, res) => {
 
 const getOrganizerEvents = async (req, res) => {
     const userId = req.user.id;
-    
+
     try {
         const events = await queries.getEventsByOrganizerId(userId);
         if (!events) {
@@ -340,9 +340,8 @@ const updateTickets = async (req, res) => {
     }
 };
 
-
 const deleteTickets = async (req, res) => {
-    const { id: event_id, ticketId } = req.params;
+    const { id: event_id, ticket_id } = req.params;
     const event = await queries.getEventById(event_id);
 
     if (!event) {
@@ -359,7 +358,7 @@ const deleteTickets = async (req, res) => {
     }
 
     try {
-        const result = await queries.deleteTickets(event_id, ticketId);
+        const result = await queries.deleteTickets(event_id, ticket_id);
         if (result === "success") {
             return res.status(200).json({
                 success: true,
