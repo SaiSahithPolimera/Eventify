@@ -14,7 +14,7 @@ const createRsvp = async (req, res) => {
 
     try {
         const rsvp = await queries.createEventRsvp(event_id, user_id, ticket_id);
-
+        
         if (rsvp.error) {
             return res.status(400).json({
                 success: false,
@@ -25,12 +25,14 @@ const createRsvp = async (req, res) => {
         const event = await queries.getEventById(event_id);
         const user = await queries.getUserDataById(user_id);
 
-        await sendEventConfirmation(user.email, {
-            title: event.title,
-            date: event.date,
-            time: event.time,
-            location: event.location,
-        });
+        if (process.env.NODE_ENV === 'production') {
+            await sendEventConfirmation(user.email, {
+                title: event.title,
+                date: event.date,
+                time: event.time,
+                location: event.location,
+            });
+        }
 
         return res.status(201).json({
             success: true,

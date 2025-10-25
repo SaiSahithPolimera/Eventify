@@ -1,7 +1,4 @@
-import dotenv from "dotenv";
 import sql from "./conn.js";
-
-dotenv.config();
 
 const createUser = async (name, email, password, role) => {
     const ROLE = role.toLowerCase();
@@ -198,41 +195,48 @@ const getTickets = async (event_id) => {
 
 
 const createEventRsvp = async (event_id, user_id, ticket_id) => {
-    return sql.begin(async (tx) => {
-        const ticket = await tx`
-      SELECT * FROM tickets
-      WHERE id = ${ticket_id} AND event_id = ${event_id}
-      FOR UPDATE
-    `;
+    try {
+        return await sql.begin(async (tx) => {
+            const existingRsvp = await tx`
+                SELECT 1 FROM rsvps
+                WHERE event_id = ${event_id} AND user_id = ${user_id}
+            `;
+            if (existingRsvp.length > 0) {
+                return { error: "User already RSVPed" };
+            }
 
-        if (ticket.length === 0)
-            return { error: "Ticket not found" };
+            const updatedTicket = await tx`
+                UPDATE tickets
+                SET quantity = quantity - 1
+                WHERE id = ${ticket_id} AND event_id = ${event_id} AND quantity > 0
+                RETURNING id
+            `;
 
-        if (ticket[0].quantity <= 0)
+            if (updatedTicket.length === 0) {
+                const ticket = await tx`SELECT 1 FROM tickets WHERE id = ${ticket_id}`;
+                if (ticket.length === 0) {
+                    return { error: "Ticket not found" };
+                }
+                return { error: "Ticket sold out" };
+            }
+
+            const newRsvp = await tx`
+                INSERT INTO rsvps (event_id, user_id, ticket_id, status)
+                VALUES (${event_id}, ${user_id}, ${ticket_id}, 'confirmed')
+                RETURNING *
+            `;
+
+            return newRsvp[0];
+        });
+    } catch (error) {
+        if (error.code === '23514' && error.constraint_name === 'tickets_quantity_check') {
             return { error: "Ticket sold out" };
-
-        const existing = await tx`
-      SELECT * FROM rsvps
-      WHERE event_id = ${event_id} AND user_id = ${user_id}
-    `;
-        if (existing.length > 0)
-            return { error: "User already RSVPed" };
-
-        const newRsvp = await tx`
-      INSERT INTO rsvps (event_id, user_id, ticket_id, status)
-      VALUES (${event_id}, ${user_id}, ${ticket_id}, 'confirmed')
-      RETURNING *
-    `;
-
-        await tx`
-      UPDATE tickets
-      SET quantity = quantity - 1
-      WHERE id = ${ticket_id} AND event_id = ${event_id}
-    `;
-
-        return newRsvp[0];
-    });
+        }
+        console.error("Error in createEventRsvp transaction:", error);
+        return { error: "An unexpected database error occurred." };
+    }
 };
+
 
 
 const cancelRsvp = async (rsvpId, userId) => {
