@@ -61,10 +61,11 @@ Create a `.env` file in the `server` directory and add the following variables:
 
 ```env
 # server/.env
-PORT=3000
-DATABASE_URL="postgresql://<user>:<password>@<host>:<port>/<database>"
 JWT_SECRET_KEY="your_super_secret_jwt_key"
-CLIENT_URL="http://localhost:5173"
+CLIENT_URL="http://localhost"
+TEST_DATABASE_URL="you_test_db_url"
+DATABASE_URL="your_db_url"
+NODE_ENV="development" || "test" || "production"
 
 # Email Service (Gmail Example)
 EMAIL_SERVICE="gmail"
@@ -119,6 +120,9 @@ Create a `.env` file in the root of the project and add your secrets. The `docke
 # Backend Secrets
 JWT_SECRET_KEY="your_super_secret_jwt_key"
 CLIENT_URL="http://localhost"
+TEST_DATABASE_URL="you_test_db_url"
+DATABASE_URL="your_db_url"
+NODE_ENV="development" || "test" || "production"
 
 # Email Service
 EMAIL_SERVICE="gmail"
@@ -166,7 +170,6 @@ The API is structured to be RESTful. You can use tools like [Postman](https://ww
 | `PUT`    | `/api/events/:id`       | Update an event.                     | Organizer     |
 | `DELETE` | `/api/events/:id`       | Delete an event.                     | Organizer     |
 | `GET`    | `/api/events/:id/stats` | Get statistics for an event.         | Organizer     |
-| `GET`    | `/api/events/:id/rsvp`  | Get RSVPs for an event.              | Organizer     |
 | `GET`    | `/api/users/:id/`       | Get user details.                    | Yes           |
 
 ### Tickets
@@ -182,7 +185,83 @@ The API is structured to be RESTful. You can use tools like [Postman](https://ww
 
 | Method   | Endpoint                | Description                         | Auth Required |
 | :------- | :---------------------- | :---------------------------------- | :------------ |
-| `POST`   | `/api/rsvps`            | RSVP for an event.                  | Yes           |
-| `GET`    | `/api/rsvps/my`         | Get all RSVPs for the current user. | Yes           |
-| `DELETE` | `/api/rsvps/:id`        | Cancel an RSVP.                     | Yes           |
 | `GET`    | `/api/events/:id/rsvps` | Get all RSVPs for a specific event. | Organizer     |
+| `GET`    | `/api/rsvps/my`         | Get all RSVPs for the current user. | Yes           |
+| `POST`   | `/api/rsvps`            | RSVP for an event.                  | Yes           |
+| `DELETE` | `/api/rsvps/:id`        | Cancel an RSVP.                     | Yes           |
+
+---
+
+## Testing
+
+### Test Setup
+
+#### Backend Test Configuration
+
+1. **Create Test Database:**
+   ```bash
+   createdb eventify_test_db
+   ```
+
+2. **Configure Test Environment:**
+   
+   Add to your `server/.env` file:
+   ```env
+   # Test Database
+   NODE_ENV=test
+   TEST_DATABASE_URL="postgresql://<user>:<password>@<host>:<port>/eventify_test_db"
+   ```
+
+3. **Run Backend Tests:**
+   ```bash
+   cd server
+   npm test                    # Run all tests
+   npm test -- auth.test.js    # Run specific test file
+   ```
+
+#### Frontend Test Configuration
+
+1. **Install Dependencies:**
+   ```bash
+   cd client
+   npm install
+   ```
+
+2. **Run Frontend Tests:**
+   ```bash
+   npm test                        # Run all tests in watch mode
+   npm test -- --run               # Run tests once
+   npm test -- Dashboard.test.jsx  # Run specific test file
+   ```
+
+## 📸 Screenshots
+
+### Dashboard - Browse Events
+![Dashboard](screenshots/dashboard.png)
+*Browse and filter events with search functionality*
+
+### Event Details
+![Event Details](screenshots/event-details.png)
+*View comprehensive event information and RSVP*
+
+### My RSVP'd Events
+![My RSVPs](screenshots/my-rsvps.png)
+*View all events you've registered for*
+
+### Create Event (Organizer)
+![Create Event](screenshots/create-event.png)
+*Create new events with detailed information*
+
+### My Events (Organizer)
+![My Events](screenshots/my-events.png)
+*Manage all your created events with statistics*
+
+### Admin Dashboard (Organizer)
+![Admin Dashboard](screenshots/admin-dashboard.png)
+*Track RSVPs, revenue, and attendee analytics*
+
+### Export Attendees (Organizer)
+![Export Attendees](screenshots/export-attendees.png)
+*Export attendee lists in CSV or PDF format*
+
+---

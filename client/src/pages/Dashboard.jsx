@@ -277,7 +277,7 @@ const Dashboard = () => {
             <button
               onClick={handleRSVP}
               disabled={userRsvps.has(selectedEvent.id) || isRsvping}
-              className="w-full bg-rose-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-rose-700 disabled:bg-slate-400 disabled:cursor-not-allowed"
+              className="w-full bg-rose-600 text-white px-6 py-3 cursor-pointer rounded-lg font-semibold hover:bg-rose-700 disabled:bg-slate-400 disabled:cursor-not-allowed"
             >
               {isRsvping ? "Processing..." : userRsvps.has(selectedEvent.id) ? "Already RSVP'd" : "RSVP Now"}
             </button>

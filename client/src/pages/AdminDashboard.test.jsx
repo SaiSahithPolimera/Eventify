@@ -130,12 +130,9 @@ describe("AdminDashboard", () => {
     expect(await screen.findByText("Tech Conference 2025")).toBeInTheDocument();
     expect(screen.getByText("An annual conference for tech enthusiasts.")).toBeInTheDocument();
 
-    expect(screen.getByText("Total Attendees")).toBeInTheDocument();
+    expect(screen.getByText("Total RSVPs")).toBeInTheDocument();
     const attendeeCount = screen.getAllByText("2");
     expect(attendeeCount.length).toBeGreaterThan(0);
-    expect(screen.getByText("Total Revenue")).toBeInTheDocument();
-    expect(screen.getByText("$150.00")).toBeInTheDocument();
-
     expect(screen.getByText("Alice Johnson")).toBeInTheDocument();
     expect(screen.getByText("Bob Williams")).toBeInTheDocument();
     expect(screen.getByText("✓ Confirmed")).toBeInTheDocument();

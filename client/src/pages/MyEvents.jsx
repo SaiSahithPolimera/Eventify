@@ -8,7 +8,7 @@ const EventCard = ({ event, onEdit, onDelete }) => {
   const stats = event.stats;
 
   return (
-    <div className="bg-white border border-slate-200 rounded-lg hover:shadow-md transition-all duration-200 overflow-hidden">
+    <div className="bg-white border border-slate-200 rounded-lg hover:shadow-md hover:border-rose-300 transition-all duration-200 overflow-hidden">
       <div className="p-6">
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-start gap-4 flex-1">
@@ -356,7 +356,7 @@ const MyEvents = () => {
           </div>
           <button
             onClick={() => openModal("create")}
-            className="bg-rose-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-rose-700 transition-colors"
+            className="bg-rose-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-rose-700 transition-colors cursor-pointer"
           >
             Create Event
           </button>
@@ -377,7 +377,7 @@ const MyEvents = () => {
             placeholder="Search events by title or location..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full border border-slate-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-rose-500"
+            className="w-full border border-slate-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-1 focus:ring-rose-400 focus:border-rose-400 shadow-sm transition-colors"
           />
         </div>
 
@@ -390,7 +390,7 @@ const MyEvents = () => {
             {!searchTerm && (
               <button
                 onClick={() => openModal("create")}
-                className="mt-4 bg-rose-600 text-white px-6 py-2 rounded-lg hover:bg-rose-700"
+                className="mt-4 bg-rose-600 text-white px-6 py-2 rounded-lg hover:bg-rose-700 cursor-pointer"
               >
                 Create Event
               </button>
@@ -399,6 +399,7 @@ const MyEvents = () => {
         ) : (
           <div className="space-y-4">
             {filteredEvents.map((event) => (
+              
               <EventCard
                 key={event.id}
                 event={event}

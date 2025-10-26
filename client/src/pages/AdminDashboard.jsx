@@ -201,25 +201,41 @@ const AdminDashboard = () => {
 
   const renderEventSummary = () => (
     <div className="mb-6 sm:mb-8 bg-white rounded-lg border border-slate-200 p-4 sm:p-6">
-      <h2 className="text-xl sm:text-2xl font-bold text-slate-900 mb-1 sm:mb-2 line-clamp-2">{selectedEvent?.title}</h2>
-      <p className="text-slate-600 mb-4 sm:mb-6 text-sm sm:text-base line-clamp-2">{selectedEvent?.description}</p>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6">
-        {renderStatCard("Total Attendees", stats?.total_rsvps || 0, "from-blue-50 to-blue-100", "text-black")}
-        {renderStatCard("Total Revenue", `$${parseFloat(stats?.total_revenue || 0).toFixed(2)}`, "from-green-50 to-green-100", "text-black")}
-      </div>
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 text-xs sm:text-sm border-t pt-4">
-        <div>
-          <p className="text-slate-600 font-semibold">Date</p>
-          <p className="text-slate-900 truncate">{new Date(selectedEvent?.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</p>
-        </div>
-        <div>
-          <p className="text-slate-600 font-semibold">Time</p>
-          <p className="text-slate-900 truncate">{selectedEvent?.time || "TBA"}</p>
-        </div>
-        <div>
-          <p className="text-slate-600 font-semibold">Location</p>
-          <p className="text-slate-900 truncate">{selectedEvent?.location || "TBA"}</p>
-        </div>
+      <h2 className="text-xl sm:text-2xl font-bold text-slate-900 mb-2">{selectedEvent?.title}</h2>
+      <p className="text-slate-600 mb-6 text-sm sm:text-base">{selectedEvent?.description}</p>
+      {/* Event Details Table */}
+      <div className="border border-slate-200 rounded-lg overflow-hidden">
+        <table className="w-full">
+          <tbody className="divide-y divide-slate-200">
+            <tr>
+              <td className="px-4 py-3 text-sm font-semibold text-slate-700 w-1/3">Date</td>
+              <td className="px-4 py-3 text-sm text-slate-900">
+                {new Date(selectedEvent?.date).toLocaleDateString("en-US", {
+                  weekday: 'long',
+                  month: "long",
+                  day: "numeric",
+                  year: "numeric"
+                })}
+              </td>
+            </tr>
+            <tr>
+              <td className="px-4 py-3 text-sm font-semibold text-slate-700">Time</td>
+              <td className="px-4 py-3 text-sm text-slate-900">{selectedEvent?.time || "TBA"}</td>
+            </tr>
+            <tr>
+              <td className="px-4 py-3 text-sm font-semibold text-slate-700">Location</td>
+              <td className="px-4 py-3 text-sm text-slate-900">{selectedEvent?.location || "TBA"}</td>
+            </tr>
+            <tr>
+              <td className="px-4 py-3 text-sm font-semibold text-slate-700">Total RSVPs</td>
+              <td className="px-4 py-3 text-sm text-slate-900">{stats?.total_rsvps || 0} attendees</td>
+            </tr>
+            <tr>
+              <td className="px-4 py-3 text-sm font-semibold text-slate-700">Revenue</td>
+              <td className="px-4 py-3 text-sm text-slate-900">${parseFloat(stats?.total_revenue || 0).toFixed(2)}</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
   );
@@ -236,11 +252,11 @@ const AdminDashboard = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-3 sm:mb-4">
           <div>
             <label className="block text-xs sm:text-sm font-semibold text-slate-700 mb-2">Search</label>
-            <input type="text" placeholder="Name or email..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-rose-500 text-xs sm:text-sm" />
+            <input type="text" placeholder="Name or email..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-rose-400 focus:border-rose-400 text-xs sm:text-sm shadow-sm" />
           </div>
           <div>
             <label className="block text-xs sm:text-sm font-semibold text-slate-700 mb-2">Status</label>
-            <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-rose-500 text-xs sm:text-sm">
+            <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-rose-400 focus:border-rose-400 text-xs sm:text-sm shadow-sm">
               <option value="all">All Status</option>
               <option value="confirmed">Confirmed</option>
               <option value="cancelled">Cancelled</option>
@@ -248,7 +264,7 @@ const AdminDashboard = () => {
           </div>
           <div>
             <label className="block text-xs sm:text-sm font-semibold text-slate-700 mb-2">Sort By</label>
-            <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-rose-500 text-xs sm:text-sm">
+            <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-rose-400 focus:border-rose-400 text-xs sm:text-sm shadow-sm">
               <option value="name">Name (A-Z)</option>
               <option value="email">Email (A-Z)</option>
               <option value="date">Date (Newest First)</option>
@@ -342,7 +358,7 @@ const AdminDashboard = () => {
         )}
         <div className="mb-6 sm:mb-8">
           <label className="block text-slate-700 font-semibold mb-2 text-sm sm:text-base">Select Event</label>
-          <select value={selectedEventId} onChange={(e) => handleEventChange(e.target.value)} className="w-full border border-slate-300 bg-white rounded-lg px-3 sm:px-4 py-2 sm:py-3 focus:outline-none focus:ring-2 focus:ring-rose-500 text-slate-900 font-medium text-sm sm:text-base">
+          <select value={selectedEventId} onChange={(e) => handleEventChange(e.target.value)} className="w-full border border-slate-300 bg-white rounded-lg px-3 sm:px-4 py-2 sm:py-3 focus:outline-none focus:ring-1 focus:ring-rose-400 focus:border-rose-400 text-slate-900 font-medium text-sm sm:text-base shadow-sm">
             <option value="">Choose an event...</option>
             {events.map((event) => (
               <option key={event.id} value={event.id}>

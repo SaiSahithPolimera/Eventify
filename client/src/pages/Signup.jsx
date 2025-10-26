@@ -275,7 +275,7 @@ const Signup = () => {
             Already have an account?{' '}
             <Link
               to="/login"
-              className="font-medium bg-gradient-to-r from-rose-600 to-pink-600 bg-clip-text text-transparent hover:from-rose-700 hover:to-pink-700"
+              className="font-medium bg-gradient-to-r from-rose-600 to-pink-600 bg-clip-text text-transparent hover:from-rose-700 hover:to-pink-700 cursor-pointer"
             >
               Sign in
             </Link>
