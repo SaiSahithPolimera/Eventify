@@ -9,8 +9,6 @@ const loginValidator = [
         .trim()
         .notEmpty()
         .withMessage(`Email ${nullError}`)
-        .isLength({ max: 100 })
-        .withMessage(`Email ${nameError}`)
         .isEmail()
         .withMessage("Email must be a valid address")
         .normalizeEmail()
