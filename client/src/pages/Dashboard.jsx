@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import Navbar from "../components/Navbar";
 import Filterbar from "../components/Filterbar";
 import BrowseEventsTab from "../components/BrowseEventsTab";
-import MyRsvpsTab from "../components/MyRsvpTab";
+import MyRsvpTab from "../components/MyRsvpTab";
 import Modal from "../components/Modal";
 
 const Dashboard = () => {
@@ -77,6 +77,7 @@ const Dashboard = () => {
 
             return { ...event, tickets, rsvp_id: rsvp.id, ticket_id: rsvp.ticket_id };
           } catch (err) {
+            console.error(err)
             return null;
           }
         })
@@ -106,6 +107,7 @@ const Dashboard = () => {
             const tickets = ticketRes.ok ? (await ticketRes.json()).tickets || [] : [];
             return { ...event, tickets };
           } catch (err) {
+            console.error(err);
             return { ...event, tickets: [] };
           }
         })
@@ -245,7 +247,7 @@ const Dashboard = () => {
         )}
 
         {activeTab === "my-rsvps" && (
-          <MyRsvpsTab
+          <MyRsvpTab
             rsvpdEvents={rsvpdEvents}
             loadingRsvpdEvents={loadingRsvpdEvents}
             onCancelRsvp={handleCancelRsvp}

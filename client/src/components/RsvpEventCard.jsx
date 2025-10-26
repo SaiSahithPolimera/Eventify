@@ -1,5 +1,45 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Modal from "./Modal";
+
+const formatGoogleCalendarDate = (date, time) => {
+  const parsedDate = new Date(date);
+  if (isNaN(parsedDate.getTime())) throw new Error("Invalid date");
+
+  const [hours, minutes] = time.split(":").map(Number);
+  const start = new Date(
+    parsedDate.getFullYear(),
+    parsedDate.getMonth(),
+    parsedDate.getDate(),
+    hours,
+    minutes
+  );
+  if (isNaN(start.getTime())) throw new Error("Invalid time");
+
+  const end = new Date(start.getTime() + 2 * 60 * 60 * 1000);
+
+  const toGoogleDate = (d) =>
+    d.toISOString().replace(/[-:.]/g, "").slice(0, -3) + "Z";
+
+  return {
+    startDate: toGoogleDate(start),
+    endDate: toGoogleDate(end),
+  };
+};
+
+const generateGoogleCalendarUrl = (event) => {
+  const { startDate, endDate } = formatGoogleCalendarDate(
+    event.date,
+    event.time
+  );
+  const params = new URLSearchParams({
+    action: "TEMPLATE",
+    text: event.title,
+    dates: `${startDate}/${endDate}`,
+    details: event.description || "No description provided",
+    location: event.location || "",
+  });
+  return `https://www.google.com/calendar/render?${params.toString()}`;
+};
 
 const RsvpEventCard = ({ event, onCancelRsvp, isCanceling }) => {
   const [modal, setModal] = useState({ type: null, data: null });
@@ -10,65 +50,22 @@ const RsvpEventCard = ({ event, onCancelRsvp, isCanceling }) => {
   const openModal = (type, data = null) => setModal({ type, data });
   const closeModal = () => setModal({ type: null, data: null });
 
-  const formatGoogleCalendarDate = (date, time) => {
+  const googleCalendarUrl = useMemo(() => {
     try {
-      const parsedDate = new Date(date);
-      if (isNaN(parsedDate)) throw new Error("Invalid date");
-
-      const [hours, minutes] = time.split(":").map(Number);
-      const start = new Date(
-        parsedDate.getFullYear(),
-        parsedDate.getMonth(),
-        parsedDate.getDate(),
-        hours,
-        minutes
-      );
-      const end = new Date(start.getTime() + 2 * 60 * 60 * 1000); // Assume 2-hour duration
-
-      const toGoogleDate = (d) =>
-        d.toISOString().replace(/[-:.]/g, "").slice(0, -3) + "Z";
-
-      return {
-        startDate: toGoogleDate(start),
-        endDate: toGoogleDate(end),
-      };
-    } catch (err) {
-      console.error("Error formatting Google Calendar date:", err);
-      openModal("response", {
-        title: "Error",
-        message: "Failed to format calendar date",
-        type: "error",
-      });
-      return { startDate: "", endDate: "" };
+      return generateGoogleCalendarUrl(event);
+    } catch (error) {
+      console.error("Failed to generate calendar URL:", error.message);
+      return null;
     }
-  };
-
-  const generateGoogleCalendarUrl = (event) => {
-    const { startDate, endDate } = formatGoogleCalendarDate(
-      event.date,
-      event.time
-    );
-    if (!startDate || !endDate) return null;
-
-    const params = new URLSearchParams({
-      action: "TEMPLATE",
-      text: event.title,
-      dates: `${startDate}/${endDate}`,
-      details: event.description || "No description provided",
-      location: event.location || "",
-    });
-
-    return `https://www.google.com/calendar/render?${params.toString()}`;
-  };
+  }, [event]);
 
   const handleAddToCalendar = () => {
-    const googleCalendarUrl = generateGoogleCalendarUrl(event);
     if (googleCalendarUrl) {
       window.open(googleCalendarUrl, "_blank");
     } else {
       openModal("response", {
         title: "Error",
-        message: "Unable to generate calendar link",
+        message: "Unable to generate calendar link. The event date or time may be invalid.",
         type: "error",
       });
     }
@@ -78,8 +75,6 @@ const RsvpEventCard = ({ event, onCancelRsvp, isCanceling }) => {
     closeModal();
     onCancelRsvp(event.rsvp_id);
   };
-
-  const googleCalendarUrl = generateGoogleCalendarUrl(event);
 
   return (
     <>
@@ -181,7 +176,6 @@ const RsvpEventCard = ({ event, onCancelRsvp, isCanceling }) => {
           <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
             <button
               onClick={handleAddToCalendar}
-              disabled={!googleCalendarUrl}
               className="px-4 py-2 rounded-lg font-semibold cursor-pointer text-sm transition-all bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
             >
               Add to Calendar

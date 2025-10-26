@@ -75,7 +75,7 @@ const AdminDashboard = () => {
         setStats(statsData.stats);
       }
 
-      const attendeesRes = await fetch(`${BASE_URL}/events/${selectedEventId}/rsvps`, {
+      const attendeesRes = await fetch(`${BASE_URL}/rsvps/event/${selectedEventId}`, {
         credentials: "include",
       });
       if (!attendeesRes.ok) throw new Error("Failed to fetch attendees");

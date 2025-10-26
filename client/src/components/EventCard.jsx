@@ -5,7 +5,7 @@ const EventCard = ({ event, userRsvps, onSelect }) => {
   const ticket = hasTickets ? event.tickets[0] : null;
   const isFree = ticket ? parseFloat(ticket.price) === 0 : false;
   const ticketQuantity = ticket ? parseInt(ticket.quantity) : 0;
-  const isSoldOut = ticketQuantity <= 0;
+  const isSoldOut = hasTickets && ticketQuantity <= 0;
   const hasRsvpd = userRsvps.has(event.id);
 
   const getButtonState = () => {
@@ -17,17 +17,17 @@ const EventCard = ({ event, userRsvps, onSelect }) => {
           "px-4 py-2 rounded-lg text-sm font-semibold text-rose-700 bg-rose-50 border border-rose-200 cursor-not-allowed",
       };
     }
-    if (isSoldOut) {
+    if (!hasTickets) {
       return {
-        label: "Sold Out",
+        label: "View Info",
         disabled: true,
         className:
           "px-4 py-2 rounded-lg text-sm font-semibold text-slate-500 bg-slate-100 border border-slate-200 cursor-not-allowed",
       };
     }
-    if (!hasTickets) {
+    if (isSoldOut) {
       return {
-        label: "View Info",
+        label: "Sold Out",
         disabled: true,
         className:
           "px-4 py-2 rounded-lg text-sm font-semibold text-slate-500 bg-slate-100 border border-slate-200 cursor-not-allowed",

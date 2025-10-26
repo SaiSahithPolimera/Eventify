@@ -12,7 +12,7 @@ const Login = () => {
     const [errors, setErrors] = useState({});
     const [isLoading, setIsLoading] = useState(false);
 
-    if (isAuthenticated) return <Navigate to="/dashboard" replace />
+    if (isAuthenticated) return <Navigate to="/dashboard" replace />;
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -39,8 +39,6 @@ const Login = () => {
 
         if (!formData.password) {
             newErrors.password = 'Password is required';
-        } else if (formData.password.length < 8) {
-            newErrors.password = 'Password must be at least 8 characters';
         }
 
         return newErrors;
@@ -48,7 +46,6 @@ const Login = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-
         const newErrors = validateForm();
         if (Object.keys(newErrors).length > 0) {
             setErrors(newErrors);
@@ -56,20 +53,18 @@ const Login = () => {
         }
 
         setIsLoading(true);
+        setErrors({});
 
         const result = await login(formData.email, formData.password);
 
         if (result.success) {
             navigate("/dashboard");
-        }
-
-        if (result.errors) {
+        } else if (result.errors) {
             const backendErrors = {};
-
             result.errors.forEach(err => {
                 backendErrors[err.fieldName || 'submit'] = err.message;
-            })
-            setErrors(backendErrors)
+            });
+            setErrors(backendErrors);
         }
 
         setIsLoading(false);
@@ -156,9 +151,9 @@ const Login = () => {
                         <button
                             type="submit"
                             disabled={isLoading}
-                            className={`w-full py-3 px-4 rounded-lg font-medium cursor-pointer text-white transition-all duration-200 ${isLoading
+                            className={`w-full py-3 px-4 rounded-lg font-medium text-white transition-all duration-200 ${isLoading
                                 ? 'bg-pink-400 cursor-not-allowed'
-                                : 'bg-pink-600 hover:bg-pink-700 hover:shadow-lg transform'
+                                : 'bg-pink-600 hover:bg-pink-700 hover:shadow-lg'
                                 }`}
                         >
                             {isLoading ? (
@@ -179,7 +174,7 @@ const Login = () => {
                         Don't have an account?{' '}
                         <Link
                             to="/signup"
-                            className="font-medium text-pink-600 hover:text-pink-700 cursor-pointer transition-colors"
+                            className="font-medium text-pink-600 hover:text-pink-700 transition-colors"
                         >
                             Sign up
                         </Link>

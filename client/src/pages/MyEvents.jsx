@@ -94,13 +94,13 @@ const EventCard = ({ event, onEdit, onDelete }) => {
           <div className="ml-4 flex flex-col gap-2 flex-shrink-0">
             <button
               onClick={() => onEdit(event)}
-              className="px-4 py-2 rounded-lg text-sm font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 transition-colors border border-blue-200"
+              className="px-4 py-2 rounded-lg text-sm font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 transition-colors cursor-pointer border border-blue-200"
             >
               Edit
             </button>
             <button
               onClick={() => onDelete(event.id)}
-              className="px-4 py-2 rounded-lg text-sm font-semibold text-red-600 bg-red-50 hover:bg-red-100 transition-colors border border-red-200"
+              className="px-4 py-2 rounded-lg text-sm font-semibold text-red-600 bg-red-50 cursor-pointer hover:bg-red-100 transition-colors border border-red-200"
             >
               Delete
             </button>
@@ -135,6 +135,7 @@ const MyEvents = () => {
   const [formState, setFormState] = useState(initialFormState);
   const [modal, setModal] = useState({ type: null, data: null });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formErrors, setFormErrors] = useState({});
 
   const fetchMyEvents = useCallback(async () => {
     try {
@@ -190,6 +191,7 @@ const MyEvents = () => {
   }, [searchTerm, events]);
 
   const openModal = (type, data = null) => {
+    setFormErrors({});
     if (type === "create") {
       setFormState(initialFormState);
     } else if (type === "edit" && data) {
@@ -208,16 +210,34 @@ const MyEvents = () => {
     setModal({ type, data });
   };
 
-  const closeModal = () => setModal({ type: null, data: null });
+  const closeModal = () => {
+    setModal({ type: null, data: null });
+    setFormErrors({});
+  };
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setFormErrors({});
     try {
       if (modal.type === "create") {
         await createEvent();
       } else if (modal.type === "edit") {
         await updateEvent();
+      }
+      closeModal();
+      fetchMyEvents();
+    } catch (err) {
+      if (err.errors && Array.isArray(err.errors)) {
+        const newErrors = {};
+        err.errors.forEach(e => {
+          if (e.fieldName) {
+            newErrors[e.fieldName] = e.message;
+          }
+        });
+        setFormErrors(newErrors);
+      } else {
+        setFormErrors({ submit: err.message || "An unexpected error occurred." });
       }
     } finally {
       setIsSubmitting(false);
@@ -233,7 +253,7 @@ const MyEvents = () => {
       body: JSON.stringify(eventData),
     });
     const eventResult = await eventRes.json();
-    if (!eventRes.ok) throw new Error(eventResult.message || "Failed to create event.");
+    if (!eventRes.ok) throw eventResult;
 
     const ticketData = {
       type: ticketType,
@@ -246,10 +266,8 @@ const MyEvents = () => {
       credentials: "include",
       body: JSON.stringify(ticketData),
     });
-    if (!ticketRes.ok) throw new Error("Event created, but failed to add tickets.");
-
-    closeModal();
-    fetchMyEvents();
+    const ticketResult = await ticketRes.json();
+    if (!ticketRes.ok) throw ticketResult;
   };
 
   const updateEvent = async () => {
@@ -260,12 +278,16 @@ const MyEvents = () => {
     }
 
     const { ticketType, ticketPrice, ticketQuantity, ...eventData } = formState;
-    await fetch(`${BASE_URL}/events/${id}`, {
+    const eventRes = await fetch(`${BASE_URL}/events/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
       body: JSON.stringify(eventData),
     });
+    if (!eventRes.ok) {
+      const errorData = await eventRes.json();
+      throw errorData;
+    }
 
     const ticket = tickets?.[0];
     const ticketData = {
@@ -277,24 +299,29 @@ const MyEvents = () => {
     const ticketUrl = ticket
       ? `${BASE_URL}/events/${id}/tickets/${ticket.id}`
       : `${BASE_URL}/events/${id}/tickets`;
-    await fetch(ticketUrl, {
+    const ticketRes = await fetch(ticketUrl, {
       method: ticketMethod,
       headers: { "Content-Type": "application/json" },
       credentials: "include",
       body: JSON.stringify(ticketData),
     });
-
-    closeModal();
-    fetchMyEvents();
+    if (!ticketRes.ok) {
+      const errorData = await ticketRes.json();
+      throw errorData;
+    }
   };
 
   const handleDelete = async () => {
     setIsSubmitting(true);
     try {
-      await fetch(`${BASE_URL}/events/${modal.data}`, {
+      const res = await fetch(`${BASE_URL}/events/${modal.data}`, {
         method: "DELETE",
         credentials: "include",
       });
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || "Failed to delete event.");
+      }
       closeModal();
       fetchMyEvents();
     } catch (err) {
@@ -390,7 +417,7 @@ const MyEvents = () => {
           title={modal.type === "create" ? "Create Event" : "Edit Event"}
         >
           <form onSubmit={handleFormSubmit}>
-            <EventForm form={formState} setForm={setFormState} today={today} />
+            <EventForm form={formState} setForm={setFormState} today={today} errors={formErrors} />
             {modal.type === "edit" && modal.data?.stats && (
               <div className="mt-4 bg-slate-50 p-4 rounded-lg border border-slate-200">
                 <h4 className="font-semibold text-slate-800 mb-2">Event Stats</h4>
@@ -399,14 +426,19 @@ const MyEvents = () => {
                 </p>
               </div>
             )}
+            {formErrors.submit && (
+              <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+                {formErrors.submit}
+              </div>
+            )}
             <div className="flex gap-3 pt-6 mt-6 border-t border-slate-200">
-              <button type="button" onClick={closeModal} className="flex-1 bg-slate-100 text-slate-700 px-6 py-3 rounded-lg font-semibold hover:bg-slate-200">
+              <button type="button" onClick={closeModal} className="flex-1 bg-slate-100 text-slate-700 px-6 py-3 cursor-pointer rounded-lg font-semibold hover:bg-slate-200">
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="flex-1 bg-rose-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-rose-700 disabled:opacity-60"
+                className="flex-1 bg-rose-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-rose-700  cursor-pointer disabled:opacity-60"
               >
                 {isSubmitting ? "Saving..." : "Save Changes"}
               </button>

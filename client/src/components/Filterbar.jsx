@@ -11,10 +11,11 @@ const Filterbar = ({ filters, setFilters, filtered }) => {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="flex flex-col">
-                    <label className="text-rose-600 font-semibold mb-2 text-sm">
+                    <label htmlFor="location-filter" className="text-rose-600 font-semibold mb-2 text-sm">
                         Location
                     </label>
                     <input
+                        id="location-filter"
                         type="text"
                         value={filters.location}
                         onChange={(e) =>
@@ -26,10 +27,11 @@ const Filterbar = ({ filters, setFilters, filtered }) => {
                 </div>
 
                 <div className="flex flex-col">
-                    <label className="text-rose-600 font-semibold mb-2 text-sm">
+                    <label htmlFor="date-filter" className="text-rose-600 font-semibold mb-2 text-sm">
                         Date
                     </label>
                     <input
+                        id="date-filter"
                         type="date"
                         value={filters.date}
                         onChange={(e) =>
@@ -40,10 +42,11 @@ const Filterbar = ({ filters, setFilters, filtered }) => {
                 </div>
 
                 <div className="flex flex-col">
-                    <label className="text-rose-600 font-semibold mb-2 text-sm">
+                    <label htmlFor="price-filter" className="text-rose-600 font-semibold mb-2 text-sm">
                         Price Type
                     </label>
                     <select
+                        id="price-filter"
                         value={filters.price}
                         onChange={(e) =>
                             setFilters({ ...filters, price: e.target.value })

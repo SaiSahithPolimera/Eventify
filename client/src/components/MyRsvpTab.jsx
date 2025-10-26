@@ -1,6 +1,6 @@
 import RsvpEventCard from "./RsvpEventCard";
 
-const MyRsvpsTab = ({
+const MyRsvpTab = ({
   rsvpdEvents,
   loadingRsvpdEvents,
   onCancelRsvp,
@@ -50,4 +50,4 @@ const MyRsvpsTab = ({
   );
 };
 
-export default MyRsvpsTab;
+export default MyRsvpTab;

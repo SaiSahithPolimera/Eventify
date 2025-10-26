@@ -19,6 +19,7 @@ const CreateEventModal = ({
         <button
           onClick={onClose}
           className="absolute right-4 top-4 text-slate-400 hover:text-slate-600 text-2xl font-bold w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
+          aria-label="Close"
         >
           ×
         </button>
@@ -43,9 +44,8 @@ const CreateEventModal = ({
             <button
               type="submit"
               disabled={creating}
-              className={`flex-1 bg-rose-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-rose-700 transition-colors cursor-pointer ${
-                creating ? "opacity-60 cursor-not-allowed" : ""
-              }`}
+              className={`flex-1 bg-rose-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-rose-700 transition-colors cursor-pointer ${creating ? "opacity-60 cursor-not-allowed" : ""
+                }`}
             >
               {creating ? (
                 <span className="flex items-center justify-center">

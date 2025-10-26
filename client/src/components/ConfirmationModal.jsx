@@ -40,7 +40,7 @@ const ConfirmationModal = ({
               className={`flex-1 px-4 py-2.5 rounded-lg font-semibold text-sm transition-all text-white active:scale-95 disabled:opacity-60 cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2 ${confirmColor}`}
             >
               {isLoading && (
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                <div role="status" className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
               )}
               <span>{confirmText}</span>
             </button>

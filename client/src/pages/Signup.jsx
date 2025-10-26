@@ -91,20 +91,18 @@ const Signup = () => {
     }
 
     setIsLoading(true);
+    setErrors({});
 
     const result = await signup(formData);
 
     if (result.success) {
       navigate("/login", { state: { message: "Account created! Please login." } });
-    }
-    else {
-      if (result.errors) {
-        const backendErrors = {};
-        result.errors.forEach(err => {
-          backendErrors[err.fieldName || 'submit'] = err.message;
-        });
-        setErrors(backendErrors);
-      }
+    } else if (result.errors) {
+      const backendErrors = result.errors.reduce((acc, err) => {
+        acc[err.fieldName || 'submit'] = err.message;
+        return acc;
+      }, {});
+      setErrors(backendErrors);
     }
 
     setIsLoading(false);

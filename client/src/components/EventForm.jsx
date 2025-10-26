@@ -1,144 +1,147 @@
-const EventForm = ({ form, setForm, today }) => {
-    const handleInputChange = (e) => {
+const EventForm = ({ form, setForm, today, errors = {} }) => {
+    const handleChange = (e) => {
         const { name, value } = e.target;
-        setForm((prevForm) => ({ ...prevForm, [name]: value }));
+        setForm((prev) => ({ ...prev, [name]: value }));
     };
 
+    const commonInputClasses = "w-full border-slate-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-rose-500";
+    const errorInputClasses = "border-red-400 focus:ring-red-500";
+
     return (
-        <div className="space-y-5">
-            <div className="flex flex-col">
-                <label className="text-slate-700 font-medium mb-2">Event Title *</label>
+        <div className="space-y-4">
+            <div>
+                <label htmlFor="title" className="block text-sm font-medium text-slate-700 mb-1">
+                    Event Title
+                </label>
                 <input
                     type="text"
                     name="title"
+                    id="title"
                     value={form.title}
-                    onChange={handleInputChange}
-                    className="border border-slate-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-rose-500 transition-all"
-                    placeholder="Event title"
+                    onChange={handleChange}
+                    className={`${commonInputClasses} ${errors.title ? errorInputClasses : ''}`}
+                    placeholder="e.g., Summer Music Festival"
                 />
+                {errors.title && <p className="mt-1 text-sm text-red-600">{errors.title}</p>}
             </div>
 
-            <div className="flex flex-col">
-                <label className="text-slate-700 font-medium mb-2">Description</label>
+            <div>
+                <label htmlFor="description" className="block text-sm font-medium text-slate-700 mb-1">
+                    Description
+                </label>
                 <textarea
                     name="description"
-                    value={form.description}
-                    onChange={handleInputChange}
+                    id="description"
                     rows="3"
-                    className="border border-slate-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-rose-500 resize-none transition-all"
-                    placeholder="Event description"
-                />
+                    value={form.description}
+                    onChange={handleChange}
+                    className={`${commonInputClasses} ${errors.description ? errorInputClasses : ''}`}
+                    placeholder="Briefly describe your event"
+                ></textarea>
+                {errors.description && <p className="mt-1 text-sm text-red-600">{errors.description}</p>}
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-                <div className="flex flex-col">
-                    <label className="text-slate-700 font-medium mb-2">Date *</label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label htmlFor="date" className="block text-sm font-medium text-slate-700 mb-1">
+                        Date
+                    </label>
                     <input
                         type="date"
                         name="date"
-                        value={form.date}
+                        id="date"
                         min={today}
-                        onChange={handleInputChange}
-                        className="border border-slate-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-rose-500 transition-all"
+                        value={form.date}
+                        onChange={handleChange}
+                        className={`${commonInputClasses} ${errors.date ? errorInputClasses : ''}`}
                     />
+                    {errors.date && <p className="mt-1 text-sm text-red-600">{errors.date}</p>}
                 </div>
-
-                <div className="flex flex-col">
-                    <label className="text-slate-700 font-medium mb-2">Time *</label>
+                <div>
+                    <label htmlFor="time" className="block text-sm font-medium text-slate-700 mb-1">
+                        Time
+                    </label>
                     <input
                         type="time"
                         name="time"
+                        id="time"
                         value={form.time}
-                        onChange={handleInputChange}
-                        className="border border-slate-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-rose-500 transition-all"
+                        onChange={handleChange}
+                        className={`${commonInputClasses} ${errors.time ? errorInputClasses : ''}`}
                     />
+                    {errors.time && <p className="mt-1 text-sm text-red-600">{errors.time}</p>}
                 </div>
             </div>
 
-            <div className="flex flex-col">
-                <label className="text-slate-700 font-medium mb-2">Location *</label>
+            <div>
+                <label htmlFor="location" className="block text-sm font-medium text-slate-700 mb-1">
+                    Location or URL
+                </label>
                 <input
                     type="text"
                     name="location"
+                    id="location"
                     value={form.location}
-                    onChange={handleInputChange}
-                    className="border border-slate-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-rose-500 transition-all"
-                    placeholder="Event location"
+                    onChange={handleChange}
+                    className={`${commonInputClasses} ${errors.location ? errorInputClasses : ''}`}
+                    placeholder="e.g., Central Park, New York"
                 />
+                {errors.location && <p className="mt-1 text-sm text-red-600">{errors.location}</p>}
             </div>
 
-            <div className="pt-5 border-t border-slate-200">
-                <h4 className="text-xl font-semibold text-slate-800 mb-4">
-                    Ticket Details
-                </h4>
-                <div className="space-y-5">
-                    <div className="flex flex-col">
-                        <label className="text-slate-700 font-medium mb-2">
-                            Ticket Type *
+            <div className="pt-4 border-t border-slate-200">
+                <h4 className="text-md font-semibold text-slate-800 mb-2">Ticket Information</h4>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="md:col-span-1">
+                        <label htmlFor="ticketType" className="block text-sm font-medium text-slate-700 mb-1">
+                            Type
                         </label>
-                        <div className="flex gap-4">
-                            <label className="flex items-center gap-2 cursor-pointer">
-                                <input
-                                    type="radio"
-                                    name="ticketType"
-                                    value="free"
-                                    checked={form.ticketType === "free"}
-                                    onChange={handleInputChange}
-                                    className="form-radio text-rose-600 focus:ring-rose-500"
-                                />
-                                <span className="text-slate-700">Free</span>
-                            </label>
-                            <label className="flex items-center gap-2 cursor-pointer">
-                                <input
-                                    type="radio"
-                                    name="ticketType"
-                                    value="paid"
-                                    checked={form.ticketType === "paid"}
-                                    onChange={handleInputChange}
-                                    className="form-radio text-rose-600 focus:ring-rose-500"
-                                />
-                                <span className="text-slate-700">Paid</span>
-                            </label>
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                        {form.ticketType === "paid" && (
-                            <div className="flex flex-col">
-                                <label className="text-slate-700 font-medium mb-2">
-                                    Ticket Price ($) *
-                                </label>
-                                <input
-                                    type="number"
-                                    name="ticketPrice"
-                                    value={form.ticketPrice}
-                                    onChange={handleInputChange}
-                                    className="border border-slate-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-rose-500"
-                                    placeholder="e.g., 10.00"
-                                    min="0.01"
-                                    step="0.01"
-                                />
-                            </div>
-                        )}
-
-                        <div
-                            className={`flex flex-col ${form.ticketType === "free" ? "col-span-2" : ""
-                                }`}
+                        <select
+                            name="ticketType"
+                            id="ticketType"
+                            value={form.ticketType}
+                            onChange={handleChange}
+                            className={`${commonInputClasses} ${errors.ticketType ? errorInputClasses : ''}`}
                         >
-                            <label className="text-slate-700 font-medium mb-2">
-                                Ticket Quantity *
+                            <option value="free">Free</option>
+                            <option value="paid">Paid</option>
+                        </select>
+                        {errors.ticketType && <p className="mt-1 text-sm text-red-600">{errors.ticketType}</p>}
+                    </div>
+                    {form.ticketType === 'paid' && (
+                        <div>
+                            <label htmlFor="ticketPrice" className="block text-sm font-medium text-slate-700 mb-1">
+                                Price ($)
                             </label>
                             <input
                                 type="number"
-                                name="ticketQuantity"
-                                value={form.ticketQuantity}
-                                onChange={handleInputChange}
-                                className="border border-slate-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-rose-500"
-                                placeholder="e.g., 100"
+                                name="ticketPrice"
+                                id="ticketPrice"
+                                value={form.ticketPrice}
+                                onChange={handleChange}
+                                className={`${commonInputClasses} ${errors.ticketPrice ? errorInputClasses : ''}`}
+                                placeholder="e.g., 25.00"
                                 min="0"
-                                step="1"
+                                step="0.01"
                             />
+                            {errors.ticketPrice && <p className="mt-1 text-sm text-red-600">{errors.ticketPrice}</p>}
                         </div>
+                    )}
+                    <div>
+                        <label htmlFor="ticketQuantity" className="block text-sm font-medium text-slate-700 mb-1">
+                            Quantity
+                        </label>
+                        <input
+                            type="number"
+                            name="ticketQuantity"
+                            id="ticketQuantity"
+                            value={form.ticketQuantity}
+                            onChange={handleChange}
+                            className={`${commonInputClasses} ${errors.ticketQuantity ? errorInputClasses : ''}`}
+                            placeholder="e.g., 100"
+                            min="0"
+                        />
+                        {errors.ticketQuantity && <p className="mt-1 text-sm text-red-600">{errors.ticketQuantity}</p>}
                     </div>
                 </div>
             </div>

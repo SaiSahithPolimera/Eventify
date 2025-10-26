@@ -5,8 +5,9 @@ const EventFormSection = ({ form, setForm, today }) => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         <div className="flex flex-col md:col-span-2">
-          <label className="text-slate-700 font-medium mb-2">Event Title *</label>
+          <label htmlFor="event-title" className="text-slate-700 font-medium mb-2">Event Title *</label>
           <input
+            id="event-title"
             type="text"
             value={form.title}
             onChange={(e) => setForm({ ...form, title: e.target.value })}
@@ -17,8 +18,9 @@ const EventFormSection = ({ form, setForm, today }) => {
         </div>
 
         <div className="flex flex-col">
-          <label className="text-slate-700 font-medium mb-2">Date *</label>
+          <label htmlFor="event-date" className="text-slate-700 font-medium mb-2">Date *</label>
           <input
+            id="event-date"
             type="date"
             value={form.date}
             min={today}
@@ -29,8 +31,9 @@ const EventFormSection = ({ form, setForm, today }) => {
         </div>
 
         <div className="flex flex-col">
-          <label className="text-slate-700 font-medium mb-2">Time *</label>
+          <label htmlFor="event-time" className="text-slate-700 font-medium mb-2">Time *</label>
           <input
+            id="event-time"
             type="time"
             value={form.time}
             onChange={(e) => setForm({ ...form, time: e.target.value })}
@@ -40,8 +43,9 @@ const EventFormSection = ({ form, setForm, today }) => {
         </div>
 
         <div className="flex flex-col">
-          <label className="text-slate-700 font-medium mb-2">Location Type *</label>
+          <label htmlFor="location-type" className="text-slate-700 font-medium mb-2">Location Type *</label>
           <select
+            id="location-type"
             value={form.locationType}
             onChange={(e) => setForm({ ...form, locationType: e.target.value })}
             className="border border-slate-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-rose-500 transition-all cursor-pointer"
@@ -52,10 +56,11 @@ const EventFormSection = ({ form, setForm, today }) => {
         </div>
 
         <div className="flex flex-col">
-          <label className="text-slate-700 font-medium mb-2">
+          <label htmlFor="event-location" className="text-slate-700 font-medium mb-2">
             {form.locationType === "virtual" ? "Meeting Link *" : "Venue Address *"}
           </label>
           <input
+            id="event-location"
             type="text"
             value={form.location}
             onChange={(e) => setForm({ ...form, location: e.target.value })}
@@ -70,8 +75,9 @@ const EventFormSection = ({ form, setForm, today }) => {
         </div>
 
         <div className="flex flex-col md:col-span-2">
-          <label className="text-slate-700 font-medium mb-2">Description</label>
+          <label htmlFor="event-description" className="text-slate-700 font-medium mb-2">Description</label>
           <textarea
+            id="event-description"
             value={form.description}
             onChange={(e) => setForm({ ...form, description: e.target.value })}
             rows="3"

@@ -162,7 +162,11 @@ const AddTickets = () => {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-rose-500"></div>
+        <div
+          role="status"
+          aria-label="Loading"
+          className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-rose-500"
+        ></div>
       </div>
     );
   }
@@ -234,7 +238,7 @@ const AddTickets = () => {
           <h2 className="text-2xl font-semibold text-gray-800">Ticket Types</h2>
           <button
             onClick={() => setShowAddForm(!showAddForm)}
-            className="px-6 py-2 bg-rose-500 text-white rounded-lg hover:bg-rose-600 transition-colors flex items-center"
+            className="px-6 py-2 bg-rose-500 text-white rounded-lg hover:bg-rose-600 transition-colors flex items-center cursor-pointer"
           >
             <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
@@ -300,12 +304,13 @@ const AddTickets = () => {
 
               {formData.type === 'paid' && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label htmlFor="ticket-price" className="block text-sm font-medium text-gray-700 mb-2">
                     Ticket Price (USD) *
                   </label>
                   <div className="relative">
                     <span className="absolute left-4 top-2 text-gray-500 text-lg">$</span>
                     <input
+                      id="ticket-price"
                       type="number"
                       name="price"
                       value={formData.price}
@@ -324,10 +329,11 @@ const AddTickets = () => {
               )}
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="ticket-quantity" className="block text-sm font-medium text-gray-700 mb-2">
                   Available Quantity *
                 </label>
                 <input
+                  id="ticket-quantity"
                   type="number"
                   name="quantity"
                   value={formData.quantity}
