@@ -192,18 +192,10 @@ const AdminDashboard = () => {
     doc.save(`${selectedEvent?.title || "attendees"}.pdf`);
   };
 
-  const renderStatCard = (label, value, bgColor, textColor) => (
-    <div className={`bg-gradient-to-br ${bgColor} rounded-lg p-4 sm:p-5 border border-opacity-30 ${textColor.replace("text-", "border-")}`}>
-      <p className={`text-xs sm:text-sm ${textColor} font-semibold uppercase tracking-wide`}>{label}</p>
-      <p className={`text-2xl sm:text-3xl font-bold ${textColor} mt-2`}>{value}</p>
-    </div>
-  );
-
   const renderEventSummary = () => (
     <div className="mb-6 sm:mb-8 bg-white rounded-lg border border-slate-200 p-4 sm:p-6">
       <h2 className="text-xl sm:text-2xl font-bold text-slate-900 mb-2">{selectedEvent?.title}</h2>
       <p className="text-slate-600 mb-6 text-sm sm:text-base">{selectedEvent?.description}</p>
-      {/* Event Details Table */}
       <div className="border border-slate-200 rounded-lg overflow-hidden">
         <table className="w-full">
           <tbody className="divide-y divide-slate-200">
